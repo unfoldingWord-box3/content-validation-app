@@ -1,21 +1,23 @@
 import React from 'react';
 import clsx from 'clsx';
-import { withStyles, makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles';
+//import { withStyles, makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles';
+import { makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Stepper from '@material-ui/core/Stepper';
 import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import CircularProgress from '@material-ui/core/CircularProgress';
-import Popover from '@material-ui/core/Popover';
+//import CircularProgress from '@material-ui/core/CircularProgress';
+//import Popover from '@material-ui/core/Popover';
 
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
-import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
+//import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
+import Checkbox from '@material-ui/core/Checkbox';
 
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -28,9 +30,11 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import Switch from '@material-ui/core/Switch';
 
-import { green } from '@material-ui/core/colors';
+//import { green } from '@material-ui/core/colors';
 import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid } from '@material-ui/core';
+
+import { BookPackageCheck } from 'uw-content-validation';
 
 
 const drawerWidth = 240;
@@ -112,7 +116,7 @@ const useStyles = makeStyles((theme: Theme) =>
     offset: {...theme.mixins.toolbar},
   }),
 );
-
+/*
 const GreenCheckbox = withStyles({
   root: {
     color: green[400],
@@ -122,8 +126,10 @@ const GreenCheckbox = withStyles({
   },
   checked: {},
 })((props: CheckboxProps) => <Checkbox color="default" {...props} />);
-
-function joinBookIds(state: opt.bpStateIF ) {
+*/
+interface bpStateIF { [x: string]: boolean[]; };
+/*
+function joinBookIds(state: bpStateIF ) {
   const x = Object.keys(state);
   let y: string[] = [];
   for (let i=0; i<x.length; i++) {
@@ -133,7 +139,7 @@ function joinBookIds(state: opt.bpStateIF ) {
   }
   return y.join();
 }
-  
+*/
     
 function getSteps() {
   return ['Select Books', 'Content Validation Details'];
@@ -197,6 +203,7 @@ export default function App() {
     });
   };
 
+  /*
   const handleReset = () => {
     setActiveStep(0);
     let states = Object.keys(state);
@@ -205,7 +212,7 @@ export default function App() {
       state[states[i]][1] = false;
     }
   };
-
+  */
   const handleNext = () => {
     let newSkipped = skipped;
     if (isStepSkipped(activeStep)) {
@@ -258,14 +265,14 @@ export default function App() {
   /* ----------------------------------------------------------
       Popover
   */
-  const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-
+  //const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
+  /*
   const handleClose = () => {
     setAnchorEl(null);
   };
-
   const popen = Boolean(anchorEl);
   const id = popen ? 'simple-popover' : undefined;
+  */
 
 
   /* ----------------------------------------------------------
@@ -280,11 +287,6 @@ export default function App() {
   const handleDrawerClose = () => {
     setOpen(false);
   };
-
-
-  async function handleDeleteLocalCache() {
-    dbsetup.bpstore.clear();
-  }
 
   const handleSelectNoneOt = () => {
     let states = books.oldTestament();
@@ -362,34 +364,14 @@ export default function App() {
     setState({ ...state, [name]: b });
   };
 
+  /*
   const handleFinishedChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
     let b: boolean[] = [];
     b[0] = true;
     b[1] = event.target.checked;
     setState({ ...state, [name]: b });
   };
-
-  const [_opt, setOpt] = React.useState(<CircularProgress/>);
-  React.useEffect( () => {
-    const fetchData = async () => {
-      try {
-        await opt.optimize(state, setOpt);
-      } catch (error) {
-        setOpt(
-          <div>
-            {error.message}
-          </div>
-        )
-        return;
-      }
-    };
-    if (activeStep !== 3) {return;}
-    fetchData();
-  }, [state,activeStep]); 
-  // the parameter [] allows the effect to skip if value unchanged
-  // an empty [] will only update on mount of component
-  
-
+  */
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -406,7 +388,7 @@ export default function App() {
             <MenuIcon />
           </IconButton>
           <Typography variant="h6" className={classes.title}>
-            Book Package and Flow Optimization
+            Book Package Content Validation
           </Typography>
         </Toolbar>
       </AppBar>
@@ -434,35 +416,6 @@ export default function App() {
             />
         </FormGroup>
         <Divider />
-              <Button disabled={activeStep !== 0 } onClick={handleDeleteLocalCache} color="primary" variant="contained" className={classes.button}>
-              Delete Local Cache
-              </Button>
-              <Divider />
-              <Button disabled={activeStep !==1 }   onClick={handleExportDetails} color="primary" variant="contained" className={classes.button}>
-              Export Snapshot
-              </Button>
-              <Divider />
-              <Button disabled={activeStep === 0 } aria-describedby={id}  
-                onClick={handlePermalink} color="primary" variant="contained" className={classes.button}
-              >
-              Copy Link
-              </Button>
-              <Popover
-                id={id}
-                open={popen}
-                anchorEl={anchorEl}
-                onClose={handleClose}
-                anchorOrigin={{
-                  vertical: 'bottom',
-                  horizontal: 'center',
-                }}
-                transformOrigin={{
-                  vertical: 'top',
-                  horizontal: 'center',
-                }}
-              >
-                <Typography>Link copied to clipboard!</Typography>
-              </Popover>
       </Drawer> 
       <Paper>
         <Typography> <br/> <br/> </Typography>
@@ -502,8 +455,6 @@ export default function App() {
             <Button disabled={activeStep === 3} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
               Next
             </Button>
-
-            )}
 
           </div>
 
@@ -568,7 +519,7 @@ export default function App() {
             {(activeStep === 1) && (
               <div>
                 <Paper>
-                  <BookPackageCheck bookId={joinBookIds(state)} chapter='' clearFlag={clearF.clearFlag} />
+                <Typography> Hello World! </Typography>
                 </Paper>
               </div>
             )}
@@ -584,6 +535,22 @@ export default function App() {
 /*
 http://localhost:3000/book-package-app/?books=mat,mrk,luk,jhn,act,rom,1co,2co,gal,eph,php,col,1th,2th,1ti,2ti,tit,phm,heb,jas,1pe,2pe,1jn,2jn,3jn,jud,rev
 
+<BookPackageCheck
+  username='unfoldingWord'
+  language_code='en'
+  // bookID can be a USFM bookID, e.g., GEN, MAT, 3JN
+  //  and can also be OBS (for Open Bible Stories)
+  bookID='TIT'
+
+  // Default displayType is 'ErrorsWarnings'
+  //  Alternatives are `SevereMediumLow', 'SingleList'
+  displayType='SevereMediumLow'
+
+  // Specifying maximumSimilarMessages and extractLength is just to show off options
+  //  -- those fields are not necessary (or normal) here
+  maximumSimilarMessages='3'
+  // extractLength='13' // Default is 10
+  />
 
 
 

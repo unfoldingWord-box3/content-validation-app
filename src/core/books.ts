@@ -1,5 +1,4 @@
 import data from './books.json';
-import * as opt from './optimize'
 
 export interface bookDataIF {
   "id": string;
@@ -9,6 +8,8 @@ export interface bookDataIF {
   "verseCount": number;
   "chapters": number[];
 }
+
+interface bpStateIF { [x: string]: boolean[]; };
 
 export const chaptersInBook = (bookId: string) => {
     let chapters: number[];
@@ -63,7 +64,7 @@ export const bookDataTitles = () => {
 }
 
 export const titlesToBoolean = () => {
-  let ob: opt.bpStateIF = {};
+  let ob: bpStateIF = {};
   let list = bookDataTitles();
   list.forEach((v,k) => {ob[v]= [false,false]});
   return ob;
