@@ -34,9 +34,9 @@ import Switch from '@material-ui/core/Switch';
 import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid } from '@material-ui/core';
 
-import { BookPackageCheck } from 'uw-content-validation';
+import BookPackageContentValidator from './BookPackageContentValidator';
 
-
+ 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -170,7 +170,7 @@ export default function App() {
   const [state, setState] = React.useState({ ...books.titlesToBoolean() }); 
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set<number>());
-  
+
   /* ----------------------------------------------------------
       Stepper
   */
@@ -522,27 +522,10 @@ export default function App() {
                 <Paper>
                 {
                   joinBookIds(state).map(id => 
-                    <Typography>{id.toUpperCase()}</Typography>
-                  )
-                }
-                {
-                  joinBookIds(state).map(id => 
-                    <BookPackageCheck
-                      username='unfoldingWord'
-                      language_code='en'
-                      // bookID can be a USFM bookID, e.g., GEN, MAT, 3JN
-                      //  and can also be OBS (for Open Bible Stories)
-                      bookID={id.toUpperCase()}
-
-                      // Default displayType is 'ErrorsWarnings'
-                      //  Alternatives are `SevereMediumLow', 'SingleList'
-                      displayType='SevereMediumLow'
-
-                      // Specifying maximumSimilarMessages and extractLength is just to show off options
-                      //  -- those fields are not necessary (or normal) here
-                      maximumSimilarMessages='3'
-                      // extractLength='13' // Default is 10
-                    />
+                    <div>
+                    <Typography variant="h6" >Book Package for {id.toUpperCase()} </Typography>
+                    <BookPackageContentValidator bookID={id} />
+                    </div>
                   )
                 }
                 </Paper>
