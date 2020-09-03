@@ -128,7 +128,7 @@ const GreenCheckbox = withStyles({
 })((props: CheckboxProps) => <Checkbox color="default" {...props} />);
 */
 interface bpStateIF { [x: string]: boolean[]; };
-/*
+
 function joinBookIds(state: bpStateIF ) {
   const x = Object.keys(state);
   let y: string[] = [];
@@ -137,9 +137,10 @@ function joinBookIds(state: bpStateIF ) {
       y.push(books.bookIdByTitle(x[i]));
     }
   }
-  return y.join();
+  //return y.join();
+  return y;
 }
-*/
+
     
 function getSteps() {
   return ['Select Books', 'Content Validation Details'];
@@ -519,7 +520,31 @@ export default function App() {
             {(activeStep === 1) && (
               <div>
                 <Paper>
-                <Typography> Hello World! </Typography>
+                {
+                  joinBookIds(state).map(id => 
+                    <Typography>{id.toUpperCase()}</Typography>
+                  )
+                }
+                {
+                  joinBookIds(state).map(id => 
+                    <BookPackageCheck
+                      username='unfoldingWord'
+                      language_code='en'
+                      // bookID can be a USFM bookID, e.g., GEN, MAT, 3JN
+                      //  and can also be OBS (for Open Bible Stories)
+                      bookID={id.toUpperCase()}
+
+                      // Default displayType is 'ErrorsWarnings'
+                      //  Alternatives are `SevereMediumLow', 'SingleList'
+                      displayType='SevereMediumLow'
+
+                      // Specifying maximumSimilarMessages and extractLength is just to show off options
+                      //  -- those fields are not necessary (or normal) here
+                      maximumSimilarMessages='3'
+                      // extractLength='13' // Default is 10
+                    />
+                  )
+                }
                 </Paper>
               </div>
             )}

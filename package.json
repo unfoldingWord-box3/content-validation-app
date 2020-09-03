@@ -10,8 +10,6 @@
   },
   "private": false,
   "peerDependencies": {
-    "axios": "^0.18.0",
-    "axios-cache-adapter": "^2.5.0"
   },
   "dependencies": {
     "@axetroy/react-download": "^1.1.1",
@@ -35,6 +33,8 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.1",
     "typescript": "^3.7.5",
+    "axios": "^0.18.0",
+    "axios-cache-adapter": "^2.5.0",
     "uw-content-validation": "^0.8.4"
   },
   "scripts": {
