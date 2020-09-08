@@ -78,8 +78,8 @@ function BookPackageContentValidator({bookID}) {
             if (processedResults.errorList.length || processedResults.warningList.length)
                 setResultValue(<>
                     {renderSummary(processedResults)}
-                    {processedResults.warningList.length && <ValidationWarnings results={processedResults.warningList} />}
-                    {processedResults.errorList.length && <ValidationErrors results={processedResults.errorList} />}
+                    {processedResults.warningList.length ? <ValidationWarnings results={processedResults.warningList} /> : <br/> }
+                    {processedResults.errorList.length ? <ValidationErrors results={processedResults.errorList} /> : <br/> }
                 </>);
             else // no errors or warnings
                 setResultValue(<>

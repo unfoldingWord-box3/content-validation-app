@@ -70,7 +70,7 @@ export const warnings_to_mt = ( ob: { [x: string]: any; }) => {
 
 export const errors_to_mt = ( ob: { [x: string]: any; }) => {
     let mt: ObjectLiteral = {};
-    mt.title = "Warnings";
+    mt.title = "Errors";
     mt.columns = [
         { title: 'Chapter', field: 'C' },
         { title: 'Verse', field: 'V' },

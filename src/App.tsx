@@ -524,7 +524,7 @@ export default function App() {
                   joinBookIds(state).map(id => 
                     <div>
                     <Typography variant="h6" >Book Package for {id.toUpperCase()} </Typography>
-                    <BookPackageContentValidator bookID={id} />
+                    <BookPackageContentValidator bookID={id} key={id} />
                     </div>
                   )
                 }
