@@ -453,7 +453,7 @@ export default function App() {
               </Button>
             )}
 
-            <Button disabled={activeStep === 3} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
+            <Button disabled={activeStep === 1} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
               Next
             </Button>
 

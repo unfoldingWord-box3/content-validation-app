@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "license": "MIT",
   "description": "A React Application for Validating Content of a Book Package.",
-  "homepage": "https://unfoldingword-box3.github.io/content-validation-app/",
+  "homepage": "https://unfoldingword-box3.githpwub.io/content-validation-app/",
   "repository": {
     "type": "git",
     "url": "https://github.com/unfoldingword-box3/content-validation-app"
@@ -35,7 +35,7 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.1",
     "typescript": "^4.0.2",
-    "uw-content-validation": "^0.8.4"
+    "uw-content-validation": "^0.8.8"
   },
   "scripts": {
     "start": "react-scripts start",

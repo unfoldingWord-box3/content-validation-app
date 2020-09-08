@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { Typography } from '@material-ui/core';
+
 import {checkBookPackage} from 'uw-content-validation';
-import { processNoticesToErrorsWarnings, processNoticesToSevereMediumLow, processNoticesToSingleList } from 'uw-content-validation';
-import { RenderSuccessesErrorsWarnings, RenderSuccessesSevereMediumLow, RenderSuccessesWarningsGradient, RenderElapsedTime } from 'uw-content-validation';
+import { processNoticesToErrorsWarnings } from 'uw-content-validation';
+import { RenderSuccessesErrorsWarnings } from 'uw-content-validation'; 
+import ValidationWarnings from './ValidationWarnings';
+import ValidationErrors from './ValidationErrors';
 
 //const CHECKER_VERSION_STRING = '0.1.2';
 function BookPackageContentValidator({bookID}) {
@@ -19,11 +23,10 @@ function BookPackageContentValidator({bookID}) {
         //  e.g., see https://medium.com/javascript-in-plain-english/https-medium-com-javascript-in-plain-english-stop-feeling-iffy-about-using-an-iife-7b0292aba174
         (async () => {
             // Display our "waiting" message
-            setResultValue(<p style={{ color: 'magenta' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
+            setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
 
             const rawCBPResults = await checkBookPackage(username, language_code, bookID, setResultValue, checkingOptions);
-            // console.log("checkBookPackage() returned", typeof rawCBPResults); //, JSON.stringify(rawCBPResults));
-
+            console.log("rawCBPResults=", rawCBPResults);
             // Add some extra fields to our rawCBPResults object in case we need this information again later
             rawCBPResults.checkType = 'BookPackage';
             rawCBPResults.username = username;
@@ -40,13 +43,8 @@ function BookPackageContentValidator({bookID}) {
                 // 'ignorePriorityNumberList': [123, 202], // default is []
             };
 
-            let displayType = 'ErrorsWarnings'; // default
-
-            function renderSummary(processedResults) {
-                return (<>
-                <p>Checked <b>{username} {language_code} {bookID}</b> </p>
-                <p>&nbsp;&nbsp;&nbsp;&nbsp;Successfully checked {processedResults.checkedFileCount.toLocaleString()} 
-                file{processedResults.checkedFileCount===1?'':'s'} 
+            /*
+                            file{processedResults.checkedFileCount===1?'':'s'} 
                 from {processedResults.checkedRepoNames.length} 
                 repo{processedResults.checkedRepoNames.length===1?'':'s'}: 
                 <b>{processedResults.checkedRepoNames.join(', ')}</b>
@@ -54,25 +52,59 @@ function BookPackageContentValidator({bookID}) {
                 file type{processedResults.checkedFilenameExtensions.size === 1 ? '' : 's'}: 
                 {processedResults.checkedFilenameExtensions.join(', ')}.
                 </p>
-                <p>&nbsp;&nbsp;&nbsp;&nbsp;Finished in <RenderElapsedTime elapsedTime={processedResults.elapsedTime} />.</p>
-                </>);
+                <p>&nbsp;&nbsp;&nbsp;&nbsp;Finished in <RenderElapsedTime elapsedTime={processedResults.elapsedSeconds} />.</p>
+            */
+            function renderSummary(processedResults) {
+                return (
+                    <>
+                    <Typography>
+                        Successfully checked&nbsp;
+                        {processedResults.checkedFileCount.toLocaleString()}&nbsp;
+                        files in&nbsp;
+                        {processedResults.elapsedSeconds}&nbsp;
+                        seconds
+                    </Typography>
+                    <Typography>
+                        There were {processedResults.errorList.length} errors and&nbsp; 
+                        {processedResults.warningList.length} warnings.
+                    </Typography>
+                </>
+            );
             }
 
-            if (displayType === 'ErrorsWarnings') {
-                const processedResults = processNoticesToErrorsWarnings(rawCBPResults, processOptions);
+            const processedResults = processNoticesToErrorsWarnings(rawCBPResults, processOptions);
+            console.log('processedResults=', processedResults);
 
-                if (processedResults.errorList.length || processedResults.warningList.length)
-                    setResultValue(<>
-                        {renderSummary(processedResults)}
-                            {processedResults.numIgnoredNotices ? ` (but ${processedResults.numIgnoredNotices.toLocaleString()} ignored errors/warnings)` : ""}
-                        <RenderSuccessesErrorsWarnings results={processedResults} />
-                    </>);
-                else // no errors or warnings
-                    setResultValue(<>
-                        {renderSummary(processedResults)}
-                        {processedResults.numIgnoredNotices ? ` (with a total of ${processedResults.numIgnoredNotices.toLocaleString()} notices ignored)` : ""}
-                        <RenderSuccessesErrorsWarnings results={processedResults} />
-                    </>);
+            if (processedResults.errorList.length || processedResults.warningList.length)
+                setResultValue(<>
+                    {renderSummary(processedResults)}
+                    {processedResults.warningList.length && <ValidationWarnings results={processedResults.warningList} />}
+                    {processedResults.errorList.length && <ValidationErrors results={processedResults.errorList} />}
+                </>);
+            else // no errors or warnings
+                setResultValue(<>
+                    {renderSummary(processedResults)}
+                    {processedResults.numIgnoredNotices ? ` (with a total of ${processedResults.numIgnoredNotices.toLocaleString()} notices ignored)` : ""}
+                    <RenderSuccessesErrorsWarnings results={processedResults} />
+                </>);
+
+        })(); // end of async part in unnamedFunction
+        // eslint-disable-next-line
+    }, []); // end of useEffect part
+
+    // {/* <div className={classes.root}> */}
+    return (
+        <div className="Fred">
+        {result}
+        </div>
+    );
+}
+
+export default BookPackageContentValidator;
+
+
+/* Code Graveyard 
+
             } else if (displayType === 'SevereMediumLow') {
                 const processedResults = processNoticesToSevereMediumLow(rawCBPResults, processOptions);
 
@@ -105,16 +137,7 @@ function BookPackageContentValidator({bookID}) {
                     </>);
             } else setResultValue(<b style={{ color: 'red' }}>Invalid displayType='{displayType}'</b>)
 
-        })(); // end of async part in unnamedFunction
-        // eslint-disable-next-line
-    }, []); // end of useEffect part
 
-    // {/* <div className={classes.root}> */}
-    return (
-        <div className="Fred">
-        {result}
-        </div>
-    );
-}
 
-export default BookPackageContentValidator;
+
+*/
