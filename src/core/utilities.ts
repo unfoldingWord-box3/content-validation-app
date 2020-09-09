@@ -40,61 +40,47 @@ interface ObjectLiteral {
 */
 // function to convert word frequency map
 // to an object suitable for MaterialTable
-export const warnings_to_mt = ( ob: { [x: string]: any; }) => {
+export const notices_to_mt = ( ob: { [x: string]: any; }) => {
     let mt: ObjectLiteral = {};
-    mt.title = "Warnings";
+    mt.title = "Validation Notices";
     mt.columns = [
+        { title: 'Resource', field: 'extra' },
+        { title: 'Priority', field: 'priority' },
         { title: 'Chapter', field: 'C' },
         { title: 'Verse', field: 'V' },
         { title: 'Line', field: 'lineNumber' },
         { title: 'Location', field: 'location' },
-        { title: 'Priority', field: 'priority' },
         { title: 'Message', field: 'message' },
     ];
     mt.data = [];
     Object.keys(ob).forEach ( key => {
+        let _location = ob[key].location;
+        _location = _location.replace(/en ... book package from unfoldingword/, '' );
         mt.data.push({ 
+            extra: ob[key].extra,
+            priority: ob[key].priority,
             C: ob[key].C, 
             V: ob[key].V, 
             lineNumber: ob[key].lineNumber,
-            location: ob[key].location,
-            priority: ob[key].priority,
+            location: _location,
             message: ob[key].message,
         })
     })
 
-    mt.options = { sorting: true };
+    mt.options = { 
+        sorting: true, 
+        padding: 'dense', 
+        exportButton: true, 
+        exportAllData: true, 
+        tableLayout: 'auto',
+        columnsButton: true,
+        filtering: true,
+        pageSize: 10,
+    };
 
     return mt;
 };
 
-export const errors_to_mt = ( ob: { [x: string]: any; }) => {
-    let mt: ObjectLiteral = {};
-    mt.title = "Errors";
-    mt.columns = [
-        { title: 'Chapter', field: 'C' },
-        { title: 'Verse', field: 'V' },
-        { title: 'Line', field: 'lineNumber' },
-        { title: 'Location', field: 'location' },
-        { title: 'Priority', field: 'priority' },
-        { title: 'Message', field: 'message' },
-    ];
-    mt.data = [];
-    Object.keys(ob).forEach ( key => {
-        mt.data.push({ 
-            C: ob[key].C, 
-            V: ob[key].V, 
-            lineNumber: ob[key].lineNumber,
-            location: ob[key].location,
-            priority: ob[key].priority,
-            message: ob[key].message,
-        })
-    })
-
-    mt.options = { sorting: true };
-
-    return mt;
-};
 /*
 // function to convert an array of words to
 // an object suitable for MaterialTable

@@ -47,7 +47,7 @@ function ValidationWarnings({
    results
   }) {
   
-    let mt = util.warnings_to_mt(results);
+    let mt = util.notices_to_mt(results);
     return (
       <Paper>
         <MaterialTable
