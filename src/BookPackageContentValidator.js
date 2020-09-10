@@ -23,7 +23,7 @@ function BookPackageContentValidator({bookID}) {
             setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
 
             const rawCBPResults = await checkBookPackage(username, language_code, bookID, setResultValue, checkingOptions);
-            console.log("rawCBPResults=", rawCBPResults);
+            //console.log("rawCBPResults=", rawCBPResults);
             // Add some extra fields to our rawCBPResults object in case we need this information again later
             rawCBPResults.checkType = 'BookPackage';
             rawCBPResults.username = username;
@@ -53,7 +53,7 @@ function BookPackageContentValidator({bookID}) {
                 {rawCBPResults.noticeList.length ? <ValidationNotices results={rawCBPResults.noticeList} /> : <br/> }
             </>);
 
-})(); // end of async part in unnamedFunction
+        })(); // end of async part in unnamedFunction
         // eslint-disable-next-line
     }, []); // end of useEffect part
 
