@@ -4,10 +4,10 @@ import { Typography } from '@material-ui/core';
 import {checkBookPackage} from 'uw-content-validation';
 import ValidationNotices from './ValidationNotices';
 
-//const CHECKER_VERSION_STRING = '0.1.2';
 function BookPackageContentValidator({bookID}) {
     const username = 'unfoldingword';
-    const language_code = 'en'
+    const language_code = 'en';
+    //const branch = 'master';
     // Check a single Bible book across many repositories
     const [result, setResultValue] = useState("Waiting-CheckBookPackage");
 
@@ -19,6 +19,7 @@ function BookPackageContentValidator({bookID}) {
         // Use an IIFE (Immediately Invoked Function Expression)
         //  e.g., see https://medium.com/javascript-in-plain-english/https-medium-com-javascript-in-plain-english-stop-feeling-iffy-about-using-an-iife-7b0292aba174
         (async () => {
+
             // Display our "waiting" message
             setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
 

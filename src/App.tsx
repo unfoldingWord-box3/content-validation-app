@@ -36,7 +36,6 @@ import { Container, CssBaseline, Grid } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
 
- 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -129,7 +128,7 @@ const GreenCheckbox = withStyles({
 */
 interface bpStateIF { [x: string]: boolean[]; };
 
-function joinBookIds(state: bpStateIF ) {
+function joinBookIds(state: bpStateIF ): string[] {
   const x = Object.keys(state);
   let y: string[] = [];
   for (let i=0; i<x.length; i++) {
@@ -518,6 +517,7 @@ export default function App() {
 
 
             {(activeStep === 1) && (
+              <>
               <div>
                 <Paper>
                 {
@@ -530,6 +530,7 @@ export default function App() {
                 }
                 </Paper>
               </div>
+              </>
             )}
 
 
@@ -540,26 +541,22 @@ export default function App() {
   );
 }
 
-/*
-http://localhost:3000/book-package-app/?books=mat,mrk,luk,jhn,act,rom,1co,2co,gal,eph,php,col,1th,2th,1ti,2ti,tit,phm,heb,jas,1pe,2pe,1jn,2jn,3jn,jud,rev
+/* code graveyard
 
-<BookPackageCheck
-  username='unfoldingWord'
-  language_code='en'
-  // bookID can be a USFM bookID, e.g., GEN, MAT, 3JN
-  //  and can also be OBS (for Open Bible Stories)
-  bookID='TIT'
-
-  // Default displayType is 'ErrorsWarnings'
-  //  Alternatives are `SevereMediumLow', 'SingleList'
-  displayType='SevereMediumLow'
-
-  // Specifying maximumSimilarMessages and extractLength is just to show off options
-  //  -- those fields are not necessary (or normal) here
-  maximumSimilarMessages='3'
-  // extractLength='13' // Default is 10
-  />
+              <>{ doInitialization( joinBookIds(state) ) }</>
 
 
+
+import {initBookPackageCheck} from 'uw-content-validation';
+
+async function doInitialization(books: string[]) {
+  const username = 'unfoldingword';
+  const language_code = 'en';
+  const branch = 'master'
+  const success = await initBookPackageCheck(username, language_code, books, branch);
+  if (!success) {
+      console.log(`Failed to pre-load all repos`)
+  }      
+}
 
 */
