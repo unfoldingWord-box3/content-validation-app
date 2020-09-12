@@ -35,6 +35,18 @@ import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
+import {initBookPackageCheck} from 'uw-content-validation';
+
+async function doInitialization() {
+  const username = 'unfoldingword';
+  const language_code = 'en';
+  const branch = 'master'
+  // pass one book to force load of TQ
+  const success = await initBookPackageCheck(username, language_code, ['JON','JUD'], branch);
+  if (!success) {
+      console.log(`Failed to pre-load all repos`)
+  }      
+}
 
 const drawerWidth = 240;
 const useStyles = makeStyles((theme: Theme) =>
@@ -226,6 +238,7 @@ export default function App() {
 
   let query = useQuery();
   if ( activeStep === 0 && queryProcessedOnce === false ) {
+    doInitialization();
     queryProcessedOnce = true;
     let bks   = query.get("books");
     if ( bks !== null ) {
@@ -547,16 +560,5 @@ export default function App() {
 
 
 
-import {initBookPackageCheck} from 'uw-content-validation';
-
-async function doInitialization(books: string[]) {
-  const username = 'unfoldingword';
-  const language_code = 'en';
-  const branch = 'master'
-  const success = await initBookPackageCheck(username, language_code, books, branch);
-  if (!success) {
-      console.log(`Failed to pre-load all repos`)
-  }      
-}
 
 */
