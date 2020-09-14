@@ -43,11 +43,11 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-export const renderLink = (link, lineNumber) => {
+export const renderLink = (link, content) => {
   if (link) {
-    return <a href={link} target="_blank">{lineNumber}</a>
-  } else if (lineNumber) {
-    return `${lineNumber}`
+    return <a href={link} target="_blank">{content}</a>
+  } else if (content) {
+    return `${content}`
   }
   return "";
 }
