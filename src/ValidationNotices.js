@@ -43,11 +43,22 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
+export const renderLink = (link, lineNumber) => {
+  if (link) {
+    return <a href={link} target="_blank">{lineNumber}</a>
+  } else {
+    return {lineNumber}
+  }
+}
+
 function ValidationWarnings({
-   results
+    results,
+    username,
+    languageCode,
+    bookID,
   }) {
-  
-    let mt = util.notices_to_mt(results);
+
+    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink);
     return (
       <Paper>
         <MaterialTable
@@ -60,16 +71,16 @@ function ValidationWarnings({
       </Paper>
     );
   };
-  
+
   ValidationWarnings.propTypes = {
     /** @ignore */
     results: PropTypes.array.isRequired,
   };
-  
+
   const styles = theme => ({
     root: {
     },
   });
-  
+
   export default withStyles(styles)(ValidationWarnings);
-  
+

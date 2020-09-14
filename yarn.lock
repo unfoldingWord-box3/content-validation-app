@@ -8284,7 +8284,7 @@ markdown-to-jsx@^6.9.3:
     prop-types "^15.6.2"
     unquote "^1.1.0"
 
-material-table@^1.51.1:
+material-table@^1.51.1, material-table@^1.69.0:
   version "1.69.0"
   resolved "https://registry.yarnpkg.com/material-table/-/material-table-1.69.0.tgz#9761821c532e750051e512f2ecf714112a1f07ac"
   integrity sha512-Pkm/c5ldXwc+/d245dbRH0zSY+00pJ6aWaDD4rBvDBwVGzZfAa+0Ktan13kM+ZujtsAOcDJYFhNx91CMp8Z++Q==
