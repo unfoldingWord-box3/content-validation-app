@@ -46,9 +46,10 @@ const tableIcons = {
 export const renderLink = (link, lineNumber) => {
   if (link) {
     return <a href={link} target="_blank">{lineNumber}</a>
-  } else {
-    return {lineNumber}
+  } else if (lineNumber) {
+    return `${lineNumber}`
   }
+  return "";
 }
 
 function ValidationWarnings({

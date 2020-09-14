@@ -95,6 +95,7 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
             field: 'lineNumber',
             render: (rowData: any) => (renderLink(rowData.link, rowData.lineNumber))
         },
+        { title: 'Row ID', field: 'rowID' },
         { title: 'Character Pos', field: 'charPos' },
         { title: 'Excerpt', field: 'excerpt' },
         { title: 'Message', field: 'message' },
@@ -111,6 +112,7 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
             C: ob[key].C,
             V: ob[key].V,
             lineNumber: ob[key].lineNumber,
+            rowID: ob[key].rowID,
             charPos: ob[key].characterIndex,
             excerpt: ob[key].extract,
             link: _link,
