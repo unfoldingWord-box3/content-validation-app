@@ -97,8 +97,20 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
         },
         { title: 'Row ID', field: 'rowID' },
         { title: 'Character Pos', field: 'charPos' },
-        { title: 'Excerpt', field: 'excerpt' },
-        { title: 'Message', field: 'message' },
+        {
+            title: 'Excerpt',
+            field: 'excerpt',
+            cellStyle: {
+                fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif"
+            },
+        },
+        {
+            title: 'Message',
+            field: 'message',
+            cellStyle: {
+                fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif"
+            },
+        },
         { title: 'Location', field: 'location' },
     ];
     mt.data = [];
