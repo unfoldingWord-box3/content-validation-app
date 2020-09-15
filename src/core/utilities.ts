@@ -34,6 +34,8 @@ interface ObjectLiteral {
  * @param username
  * @param languageCode
  * @param bookID
+ * @param lineNum
+ * @param branch
  */
 export const getLink = (repo: string, username: string, languageCode: string, bookID: string, lineNum: string, branch = `master`) => {
     let repoName = `${languageCode.toLowerCase()}_${repo.toLowerCase()}`;
@@ -68,6 +70,33 @@ export const getLink = (repo: string, username: string, languageCode: string, bo
     return null;
 }
 
+/**
+ * remove columns that don't have any data
+ * @param rows
+ * @param columns
+ */
+export const trimColumns = (rows: any[], columns: any[]) => {
+    const newColumns = [];
+    for (let column of columns) {
+        const { field, title } = column;
+        let hasData = false;
+
+        for (let row of rows) {
+            const cellData = row[field]
+            if (cellData) {
+                hasData = true;
+                break;
+            }
+        }
+
+        if (hasData) {
+            newColumns.push(column);
+        } else {
+            console.log(`Removing column "${title}" because no data found`);
+        }
+    }
+    return newColumns;
+}
 
 /* Sample of Warnings List:
     C: "1"
@@ -96,6 +125,8 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
             render: (rowData: any) => (renderLink(rowData.link, rowData.lineNumber))
         },
         { title: 'Row ID', field: 'rowID' },
+        { title: 'Field Name', field: 'fieldName' },
+        { title: 'Details', field: 'details' },
         { title: 'Character Pos', field: 'charPos' },
         {
             title: 'Excerpt',
@@ -115,23 +146,28 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
     ];
     mt.data = [];
     Object.keys(ob).forEach ( key => {
-        let _location = ob[key].location;
+        const rowData = ob[key];
+        let _location = rowData.location;
         _location = _location.replace(/en ... book package from unfoldingword/, '' );
-        let _link = getLink(ob[key].extra, username, languageCode, bookID, ob[key].lineNumber);
+        let _link = getLink(rowData.extra, username, languageCode, bookID, rowData.lineNumber);
         mt.data.push({
-            extra: ob[key].extra,
-            priority: ob[key].priority,
-            C: ob[key].C,
-            V: ob[key].V,
-            lineNumber: ob[key].lineNumber,
-            rowID: ob[key].rowID,
-            charPos: ob[key].characterIndex,
-            excerpt: ob[key].extract,
+            extra: rowData.extra,
+            priority: rowData.priority,
+            C: rowData.C,
+            V: rowData.V,
+            lineNumber: rowData.lineNumber,
+            rowID: rowData.rowID,
+            charPos: rowData.characterIndex,
+            excerpt: rowData.extract,
             link: _link,
             location: _location,
-            message: ob[key].message,
+            message: rowData.message,
+            fieldName: rowData.fieldName,
+            details: rowData.details,
         })
     })
+
+    mt.columns = trimColumns(mt.data, mt.columns);
 
     mt.options = {
         sorting: true,
