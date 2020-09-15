@@ -45,7 +45,7 @@ const tableIcons = {
 
 export const renderLink = (link, content) => {
   if (link) {
-    return <a href={link} target="_blank">{content}</a>
+    return <a href={link} target="_blank" rel="noopener noreferrer">{content}</a>
   } else if (content) {
     return `${content}`
   }
