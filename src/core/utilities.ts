@@ -111,17 +111,19 @@ export const stringToNumber = (value: any) => {
 export const somewhatNumericalSort = (a: any, b: any) => {
     const aNum = stringToNumber(a);
     const bNum = stringToNumber(b);
-    let isLess = false;
-    if (!isNaN(aNum) && !isNaN(bNum)) { // if numbers then do numerical compare
+    const aStr = a || "";
+    const bStr = b || "";
+    let isLess = true;
+    if (!isNaN(aNum) && !isNaN(bNum)) { // if both are numbers then do numerical compare
         isLess = aNum < bNum;
+    } else if (isNaN(aNum) && isNaN(bNum)) { // if both are not numbers then do a string compare
+        isLess = aStr < bStr;
     } else if (isNaN(aNum)) {
         isLess = true;  // non-numeric strings less than numbers
     } else if (isNaN(bNum)) {
-        isLess = false;  // non-numeric strings not less than numbers
-    } else {
-        isLess = a < b; // otherwise do string compare
+        isLess = false;  // non-numeric strings less than numbers
     }
-  return isLess ? -1 : 1;
+    return isLess ? -1 : 1;
 }
 
 /* Sample of Warnings List:
