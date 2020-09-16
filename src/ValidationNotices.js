@@ -52,6 +52,34 @@ export const renderLink = (link, content) => {
   return "";
 }
 
+export const renderWithUnicodeLink = (content) => {
+  if ( !content ) {
+    return "";
+  }
+  const getUnicodeRegEx = new RegExp(/\=D(\d+)\/H(\w+)\)/, 'g');
+  // const fieldText = ' (⁠=D8288/H2060)תְנֵ֣⁠ה… …מֶּ֑לֶך(ְ=D1456/H5b0) ([=D91/H5b)סוּסֵי⁠…';
+  let match;
+  let lastPos = 0;
+  const output = [];
+  // eslint-disable-next-line no-cond-assign
+  while (match = getUnicodeRegEx.exec(content)) {
+    if (match.index > 0) {
+      output.push(content.substring(lastPos, match.index));
+    }
+    let matchLen = match[0].length;
+    const unicode = match[2];
+    output.push (
+      <a href={`http://www.fileformat.info/info/unicode/char/${unicode}/index.htm`} target="_blank" rel="noopener noreferrer">U+{unicode}</a>
+    )
+    lastPos = match.index + matchLen - 1; // update start position
+  }
+  if (lastPos < content.length) {
+    output.push(content.substring(lastPos, content.length));
+  }
+
+  return <> {output} </>
+};
+
 function ValidationWarnings({
     results,
     username,
@@ -59,7 +87,7 @@ function ValidationWarnings({
     bookID,
   }) {
 
-    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink);
+    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink);
     return (
       <Paper>
         <MaterialTable

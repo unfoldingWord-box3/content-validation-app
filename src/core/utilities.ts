@@ -111,7 +111,7 @@ export const trimColumns = (rows: any[], columns: any[]) => {
 */
 // function to convert word frequency map
 // to an object suitable for MaterialTable
-export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string, renderLink: any) => {
+export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string, renderLink: any, renderWithUnicodeLink: any) => {
     let mt: ObjectLiteral = {};
     mt.title = "Validation Notices";
     mt.columns = [
@@ -134,12 +134,14 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
             cellStyle: {
                 fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif"
             },
+            render: (rowData: any) => (renderWithUnicodeLink(rowData.excerpt))
         },
         {
             title: 'Message',
             field: 'message',
             cellStyle: {
-                fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif"
+                fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif",
+                width: `400px`
             },
         },
         { title: 'Location', field: 'location' },
