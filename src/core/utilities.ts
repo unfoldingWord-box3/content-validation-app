@@ -115,10 +115,10 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
     let mt: ObjectLiteral = {};
     mt.title = "Validation Notices";
     mt.columns = [
-        { title: 'Resource', field: 'extra' },
-        { title: 'Priority', field: 'priority' },
-        { title: 'Chapter', field: 'C' },
-        { title: 'Verse', field: 'V' },
+        { title: 'Repo', field: 'extra' },
+        { title: 'Pri', field: 'priority' },
+        { title: 'Ch', field: 'C' },
+        { title: 'Vs', field: 'V' },
         {
             title: 'Line',
             field: 'lineNumber',
@@ -127,7 +127,7 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
         { title: 'Row ID', field: 'rowID' },
         { title: 'Field Name', field: 'fieldName' },
         { title: 'Details', field: 'details' },
-        { title: 'Character Pos', field: 'charPos' },
+        { title: 'Char Pos', field: 'charPos' },
         {
             title: 'Excerpt',
             field: 'excerpt',
@@ -171,10 +171,10 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
 
     mt.options = {
         sorting: true,
-        padding: 'dense',
+        // padding: 'dense',
         exportButton: true,
         exportAllData: true,
-        tableLayout: 'auto',
+        // tableLayout: 'auto',
         columnsButton: true,
         filtering: true,
         pageSize: 10,
