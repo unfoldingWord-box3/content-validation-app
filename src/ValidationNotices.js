@@ -56,7 +56,7 @@ export const renderWithUnicodeLink = (content) => {
   if ( !content ) {
     return "";
   }
-  const getUnicodeRegEx = new RegExp(/\=D(\d+)\/H(\w+)\)/, 'g');
+  const getUnicodeRegEx = new RegExp(/=D(\d+)\/H(\w+)\)/, 'g');
   // const fieldText = ' (⁠=D8288/H2060)תְנֵ֣⁠ה… …מֶּ֑לֶך(ְ=D1456/H5b0) ([=D91/H5b)סוּסֵי⁠…';
   let match;
   let lastPos = 0;

@@ -98,6 +98,32 @@ export const trimColumns = (rows: any[], columns: any[]) => {
     return newColumns;
 }
 
+export const stringToNumber = (value: any) => {
+    if (typeof value === 'string') {
+        const num = parseInt(value, 10);
+        if (!isNaN(num)) {
+            return num;
+        }
+    }
+    return NaN;
+}
+
+export const somewhatNumericalSort = (a: any, b: any) => {
+    const aNum = stringToNumber(a);
+    const bNum = stringToNumber(b);
+    let isLess = false;
+    if (!isNaN(aNum) && !isNaN(bNum)) { // if numbers then do numerical compare
+        isLess = aNum < bNum;
+    } else if (isNaN(aNum)) {
+        isLess = true;  // non-numeric strings less than numbers
+    } else if (isNaN(bNum)) {
+        isLess = false;  // non-numeric strings not less than numbers
+    } else {
+        isLess = a < b; // otherwise do string compare
+    }
+  return isLess ? -1 : 1;
+}
+
 /* Sample of Warnings List:
     C: "1"
     V: "1"
@@ -117,8 +143,16 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
     mt.columns = [
         { title: 'Repo', field: 'extra' },
         { title: 'Pri', field: 'priority' },
-        { title: 'Ch', field: 'C' },
-        { title: 'Vs', field: 'V' },
+        {
+            title: 'Ch',
+            field: 'C',
+            customSort: (a: any, b: any) => somewhatNumericalSort(a.C, b.C)
+        },
+        {
+            title: 'Vs',
+            field: 'V',
+            customSort: (a: any, b: any) => somewhatNumericalSort(a.V, b.V)
+        },
         {
             title: 'Line',
             field: 'lineNumber',
@@ -168,6 +202,9 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
             details: rowData.details,
         })
     })
+
+    // @ts-ignore
+    mt.data = mt.data.sort((a: object, b: object) => (a.priority > b.priority ? -1 : 1) ); // sort highest priority to the top of the table
 
     mt.columns = trimColumns(mt.data, mt.columns);
 
