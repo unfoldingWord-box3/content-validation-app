@@ -113,17 +113,26 @@ export const somewhatNumericalSort = (a: any, b: any) => {
     const bNum = stringToNumber(b);
     const aStr = a || "";
     const bStr = b || "";
-    let isLess = true;
     if (!isNaN(aNum) && !isNaN(bNum)) { // if both are numbers then do numerical compare
-        isLess = aNum < bNum;
-    } else if (isNaN(aNum) && isNaN(bNum)) { // if both are not numbers then do a string compare
-        isLess = aStr < bStr;
-    } else if (isNaN(aNum)) {
-        isLess = true;  // non-numeric strings less than numbers
-    } else if (isNaN(bNum)) {
-        isLess = false;  // non-numeric strings less than numbers
+        return aNum - bNum;
     }
-    return isLess ? -1 : 1;
+
+    if (isNaN(aNum) && isNaN(bNum)) { // if both are not numbers then do a string compare
+        return aStr > bStr ? 1 : ( aStr === bStr ? 0 : -1);
+    }
+
+    if (isNaN(aNum)) {
+        return -1;  // non-numeric strings less than numbers
+    }
+    return 1;
+}
+
+export const sortChapterVerse = (a: any, b: any) => {
+    let results = somewhatNumericalSort(a.C, b.C);
+    if (results === 0) { // if chapters are same, then sort on verse
+        results = somewhatNumericalSort(a.V, b.V);
+    }
+    return results;
 }
 
 /* Sample of Warnings List:
@@ -148,7 +157,7 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
         {
             title: 'Ch',
             field: 'C',
-            customSort: (a: any, b: any) => somewhatNumericalSort(a.C, b.C)
+            customSort: (a: any, b: any) => sortChapterVerse(a, b)
         },
         {
             title: 'Vs',
