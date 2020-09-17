@@ -98,6 +98,10 @@ export const trimColumns = (rows: any[], columns: any[]) => {
     return newColumns;
 }
 
+/**
+ * converts strings to numbers
+ * @param value
+ */
 export const stringToNumber = (value: any) => {
     if (typeof value === 'string') {
         const num = parseInt(value, 10);
@@ -108,11 +112,17 @@ export const stringToNumber = (value: any) => {
     return NaN;
 }
 
+/**
+ * string compare that attempts to do numerical sorting fist and then will sort by string
+ * @param a
+ * @param b
+ */
 export const somewhatNumericalSort = (a: any, b: any) => {
     const aNum = stringToNumber(a);
     const bNum = stringToNumber(b);
     const aStr = a || "";
     const bStr = b || "";
+
     if (!isNaN(aNum) && !isNaN(bNum)) { // if both are numbers then do numerical compare
         return aNum - bNum;
     }
@@ -127,6 +137,11 @@ export const somewhatNumericalSort = (a: any, b: any) => {
     return 1;
 }
 
+/**
+ * sort by chapter first and then by verse if same chapter
+ * @param a
+ * @param b
+ */
 export const sortChapterVerse = (a: any, b: any) => {
     let results = somewhatNumericalSort(a.C, b.C);
     if (results === 0) { // if chapters are same, then sort on verse

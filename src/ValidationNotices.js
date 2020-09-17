@@ -43,6 +43,12 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
+/**
+ * creates a link to external URL
+ * @param link
+ * @param content
+ * @return {JSX.Element|string}
+ */
 export const renderLink = (link, content) => {
   if (link) {
     return <a href={link} target="_blank" rel="noopener noreferrer">{content}</a>
@@ -52,12 +58,17 @@ export const renderLink = (link, content) => {
   return "";
 }
 
+/**
+ * replaces unicode references with link to webpage describing the character
+ * @param content
+ * @return {JSX.Element|string}
+ */
 export const renderWithUnicodeLink = (content) => {
   if ( !content ) {
     return "";
   }
+  // find unicode refs that look like '( =D8288/H2060)'
   const getUnicodeRegEx = new RegExp(/=D(\d+)\/H(\w+)\)/, 'g');
-  // const fieldText = ' (⁠=D8288/H2060)תְנֵ֣⁠ה… …מֶּ֑לֶך(ְ=D1456/H5b0) ([=D91/H5b)סוּסֵי⁠…';
   let match;
   let lastPos = 0;
   const output = [];
@@ -77,6 +88,7 @@ export const renderWithUnicodeLink = (content) => {
     output.push(content.substring(lastPos, content.length));
   }
 
+  // assemble all the strings and anchors into one segment
   return <> {output} </>
 };
 
