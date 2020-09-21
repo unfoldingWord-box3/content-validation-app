@@ -340,7 +340,13 @@ export default function App() {
     setState({ ...state, [name]: b });
   };
 
-  
+  /* as of 2020-09-21:
+  The languages/orgs are:
+    Russian (RU)/ru_gl
+    Hindi (HI)/translationCore-Create-BCS
+    Kannada (KN)/translationCore-Create-BCS
+    Latin-American Spanish (ES-419)/Es-419_gl
+*/
   const handleOrgLangChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
     let val = (event.target as HTMLInputElement).value;
     let org  = 'unfoldingword';
@@ -348,11 +354,12 @@ export default function App() {
     if ( val === 'ru' ) {
       org  = 'ru_gl';
       lang = 'ru';
-    } else if ( val === 'vi' ) {
-      org  = 'vi_gl';
-      lang = 'vi';
+    } else if ( val === 'hi' ) {
+      org  = 'translationCore-Create-BCS';
+      lang = 'hi';
     } else if ( val === 'kn' ) {
-      // TBD
+      org  = 'translationCore-Create-BCS';
+      lang = 'kn';
     } else if ( val === 'es-419' ) {
       org = 'Es-419_gl';
       lang = 'es-419';
@@ -505,11 +512,11 @@ export default function App() {
                   <FormControl component="fieldset">
                     <FormLabel component="legend">Languages</FormLabel>
                     <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
-                      <FormControlLabel value="en" control={<Radio />} label="English" />
-                      <FormControlLabel value="ru" control={<Radio />} label="Russian" />
-                      <FormControlLabel value="vi" control={<Radio />} label="Hindi" />
-                      <FormControlLabel value="kn" control={<Radio />} label="Kannada" />
-                      <FormControlLabel value="es-419" control={<Radio />} label="Spanish (Latin America)" />
+                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
+                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
+                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
+                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
+                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
                     </RadioGroup>
                   </FormControl>
                 </Paper>
