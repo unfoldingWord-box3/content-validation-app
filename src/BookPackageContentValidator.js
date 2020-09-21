@@ -4,9 +4,9 @@ import { Typography } from '@material-ui/core';
 import {checkBookPackage} from 'uw-content-validation';
 import ValidationNotices from './ValidationNotices';
 
-function BookPackageContentValidator({bookID}) {
-    const username = 'unfoldingword';
-    const language_code = 'en';
+function BookPackageContentValidator({bookID, username, language_code}) {
+    //const username = 'unfoldingword';
+    //const language_code = 'en';
     //const branch = 'master';
     // Check a single Bible book across many repositories
     const [result, setResultValue] = useState("Waiting-CheckBookPackage");
