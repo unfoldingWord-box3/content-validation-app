@@ -43,11 +43,63 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
+/**
+ * creates a link to external URL
+ * @param link
+ * @param content
+ * @return {JSX.Element|string}
+ */
+export const renderLink = (link, content) => {
+  if (link) {
+    return <a href={link} target="_blank" rel="noopener noreferrer">{content}</a>
+  } else if (content) {
+    return `${content}`
+  }
+  return "";
+}
+
+/**
+ * replaces unicode references with link to webpage describing the character
+ * @param content
+ * @return {JSX.Element|string}
+ */
+export const renderWithUnicodeLink = (content) => {
+  if ( !content ) {
+    return "";
+  }
+  // find unicode refs that look like '( =D8288/H2060)'
+  const getUnicodeRegEx = new RegExp(/=D(\d+)\/H(\w+)\)/, 'g');
+  let match;
+  let lastPos = 0;
+  const output = [];
+  // eslint-disable-next-line no-cond-assign
+  while (match = getUnicodeRegEx.exec(content)) {
+    if (match.index > 0) {
+      output.push(content.substring(lastPos, match.index));
+    }
+    let matchLen = match[0].length;
+    const unicode = match[2];
+    output.push (
+      <a href={`http://www.fileformat.info/info/unicode/char/${unicode}/index.htm`} target="_blank" rel="noopener noreferrer">U+{unicode}</a>
+    )
+    lastPos = match.index + matchLen - 1; // update start position
+  }
+  if (lastPos < content.length) {
+    output.push(content.substring(lastPos, content.length));
+  }
+
+  // assemble all the strings and anchors into one segment
+  return <> {output} </>
+};
+
 function ValidationWarnings({
-   results
+    results,
+    username,
+    languageCode,
+    bookID,
   }) {
-  
-    let mt = util.notices_to_mt(results);
+
+    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink);
     return (
       <Paper>
         <MaterialTable
@@ -60,16 +112,16 @@ function ValidationWarnings({
       </Paper>
     );
   };
-  
+
   ValidationWarnings.propTypes = {
     /** @ignore */
     results: PropTypes.array.isRequired,
   };
-  
+
   const styles = theme => ({
     root: {
     },
   });
-  
+
   export default withStyles(styles)(ValidationWarnings);
-  
+

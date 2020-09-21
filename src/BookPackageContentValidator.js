@@ -43,7 +43,7 @@ function BookPackageContentValidator({bookID}) {
                         seconds
                     </Typography>
                     <Typography>
-                        There were {rawCBPResults.noticeList.length} notices. 
+                        There were {rawCBPResults.noticeList.length} notices.
                     </Typography>
                 </>
             );
@@ -51,7 +51,14 @@ function BookPackageContentValidator({bookID}) {
 
             setResultValue(<>
                 {renderSummary(rawCBPResults)}
-                {rawCBPResults.noticeList.length ? <ValidationNotices results={rawCBPResults.noticeList} /> : <br/> }
+                {rawCBPResults.noticeList.length ?
+                  <ValidationNotices
+                    results={rawCBPResults.noticeList}
+                    username={username}
+                    languageCode={language_code}
+                    bookID={bookID}
+                  />
+                : <br/> }
             </>);
 
         })(); // end of async part in unnamedFunction
