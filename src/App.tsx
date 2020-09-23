@@ -28,21 +28,19 @@ import Divider from '@material-ui/core/Divider';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-import Switch from '@material-ui/core/Switch';
 
 //import { green } from '@material-ui/core/colors';
 import * as books from '../src/core/books';
-import { Container, CssBaseline, Grid } from '@material-ui/core';
+import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
-import {initBookPackageCheck} from 'uw-content-validation';
+import {clearCacheAndPreloadRepos} from 'uw-content-validation';
 
 async function doInitialization() {
   const username = 'unfoldingword';
   const language_code = 'en';
   const branch = 'master'
-  // pass one book to force load of TQ
-  const success = await initBookPackageCheck(username, language_code, ['JON','JUD'], branch);
+  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch);
   if (!success) {
       console.log(`Failed to pre-load all repos`)
   }      
@@ -154,7 +152,7 @@ function joinBookIds(state: bpStateIF ): string[] {
 
     
 function getSteps() {
-  return ['Select Books', 'Content Validation Details'];
+  return ['Select Books', 'Select Organization and Language', 'Content Validation Details'];
 }
 
 function getStepContent(step: number) {
@@ -162,6 +160,8 @@ function getStepContent(step: number) {
     case 0:
       return 'Select books, then click Next to generate book package details';
     case 1:
+      return 'Select Organization and Language';
+    case 2:
       return 'Content Validation Results';
     default:
       return 'Unknown step';
@@ -181,6 +181,8 @@ export default function App() {
   const [state, setState] = React.useState({ ...books.titlesToBoolean() }); 
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set<number>());
+  const [org, setOrg]   = React.useState('unfoldingword');
+  const [lang, setLang] = React.useState('en');
 
   /* ----------------------------------------------------------
       Stepper
@@ -215,16 +217,6 @@ export default function App() {
     });
   };
 
-  /*
-  const handleReset = () => {
-    setActiveStep(0);
-    let states = Object.keys(state);
-    for( let i=0; i < states.length; i++) {
-      state[states[i]][0] = false;
-      state[states[i]][1] = false;
-    }
-  };
-  */
   const handleNext = () => {
     let newSkipped = skipped;
     if (isStepSkipped(activeStep)) {
@@ -263,30 +255,13 @@ export default function App() {
         b[0] = true;
         b[1] = false;  
       }
-      // skip to step 2...
-      //activeStep = 1; //works sort of
       handleNext();
-      // for URL, always clear local cache
-      //dbsetup.bpstore.clear();
     }
   }
 
 
   const classes = useStyles();
   const theme = useTheme();
-
-  /* ----------------------------------------------------------
-      Popover
-  */
-  //const [anchorEl, setAnchorEl] = React.useState<HTMLButtonElement | null>(null);
-  /*
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-  const popen = Boolean(anchorEl);
-  const id = popen ? 'simple-popover' : undefined;
-  */
-
 
   /* ----------------------------------------------------------
       Menu drawer
@@ -353,18 +328,6 @@ export default function App() {
     }
   };
 
-  /* ----------------------------------------------------------
-      Switch for data refresh
-  */
- const [clearF, setClearF] = React.useState({
-    clearFlag: false,
-  });
-
-  const handleChangeClearFlag = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    setClearF({ ...clearF, [name]: event.target.checked });
-  };
-
-
   
   /* ----------------------------------------------------------
       Form/checkbox stuff 
@@ -377,14 +340,34 @@ export default function App() {
     setState({ ...state, [name]: b });
   };
 
-  /*
-  const handleFinishedChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
-    let b: boolean[] = [];
-    b[0] = true;
-    b[1] = event.target.checked;
-    setState({ ...state, [name]: b });
+  /* as of 2020-09-21:
+  The languages/orgs are:
+    Russian (RU)/ru_gl
+    Hindi (HI)/translationCore-Create-BCS
+    Kannada (KN)/translationCore-Create-BCS
+    Latin-American Spanish (ES-419)/Es-419_gl
+*/
+  const handleOrgLangChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
+    let val = (event.target as HTMLInputElement).value;
+    let org  = 'unfoldingword';
+    let lang = 'en';
+    if ( val === 'ru' ) {
+      org  = 'ru_gl';
+      lang = 'ru';
+    } else if ( val === 'hi' ) {
+      org  = 'translationCore-Create-BCS';
+      lang = 'hi';
+    } else if ( val === 'kn' ) {
+      org  = 'translationCore-Create-BCS';
+      lang = 'kn';
+    } else if ( val === 'es-419' ) {
+      org = 'Es-419_gl';
+      lang = 'es-419';
+    }
+    setOrg(org);
+    setLang(lang);
   };
-  */
+  
   return (
     <div className={classes.root}>
       <CssBaseline />
@@ -420,14 +403,7 @@ export default function App() {
           </IconButton>
         </div>
         <Divider />
-        <FormGroup row>
-            <FormControlLabel
-              control={
-                <Switch checked={clearF.clearFlag} onChange={handleChangeClearFlag('clearFlag')} value="clearFlag" color="primary" />
-              }
-              label="Refresh Book Package Data"
-            />
-        </FormGroup>
+          <Typography>Nothing here to see!</Typography>
         <Divider />
       </Drawer> 
       <Paper>
@@ -465,7 +441,7 @@ export default function App() {
               </Button>
             )}
 
-            <Button disabled={activeStep === 1} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
+            <Button disabled={activeStep === 2} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
               Next
             </Button>
 
@@ -533,11 +509,30 @@ export default function App() {
               <>
               <div>
                 <Paper>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">Languages</FormLabel>
+                    <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
+                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
+                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
+                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
+                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
+                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
+                    </RadioGroup>
+                  </FormControl>
+                </Paper>
+              </div>
+              </>
+            )}
+
+            {(activeStep === 2) && (
+              <>
+              <div>
+                <Paper>
                 {
                   joinBookIds(state).map(id => 
                     <div>
                     <Typography variant="h6" >Book Package for {books.bookTitleById(id)} </Typography>
-                    <BookPackageContentValidator bookID={id} key={id} />
+                    <BookPackageContentValidator bookID={id} key={id} username={org} language_code={lang} />
                     </div>
                   )
                 }
@@ -553,12 +548,3 @@ export default function App() {
     </div>
   );
 }
-
-/* code graveyard
-
-              <>{ doInitialization( joinBookIds(state) ) }</>
-
-
-
-
-*/
