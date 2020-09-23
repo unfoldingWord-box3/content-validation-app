@@ -163,12 +163,18 @@ export const sortChapterVerse = (a: any, b: any) => {
 */
 // function to convert word frequency map
 // to an object suitable for MaterialTable
-export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string, renderLink: any, renderWithUnicodeLink: any) => {
+export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string, 
+    renderLink: any, renderWithUnicodeLink: any, renderPriority: any) => 
+{
     let mt: ObjectLiteral = {};
     mt.title = "Validation Notices";
     mt.columns = [
         { title: 'Repo', field: 'extra' },
-        { title: 'Pri', field: 'priority' },
+        { 
+            title: 'Pri', 
+            field: 'priority',
+            render: (rowData: any) => (renderPriority(rowData.priority))
+        },
         {
             title: 'Ch',
             field: 'C',
