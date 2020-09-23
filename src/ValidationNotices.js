@@ -44,6 +44,26 @@ const tableIcons = {
 };
 
 /**
+ * Colorized priority according to severity of notice
+ * @param content
+ * @return {JSX.Element|string}
+ */
+export const renderPriority = (content) => {
+  // breaking changes: 800 and above
+  if ( content >= 800 ) {
+      return <p style={{ color: 'red', fontWeight: 'bold' }}>{content}</p>;
+  }
+
+  // non-breaking changes: 600 to 799
+  if ( content >= 600 ) {
+    return <p style={{ color: 'blue', fontWeight: 'bold' }}>{content}</p>
+  }
+
+  // below 600 are warnings
+  return <p style={{ color: 'green', fontWeight: 'bold' }}>{content}</p>;
+}
+
+/**
  * creates a link to external URL
  * @param link
  * @param content
@@ -99,7 +119,7 @@ function ValidationWarnings({
     bookID,
   }) {
 
-    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink);
+    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink, renderPriority);
     return (
       <Paper>
         <MaterialTable
