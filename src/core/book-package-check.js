@@ -1,6 +1,7 @@
 import React from 'react';
 import * as books from './books';
 import { getRepoName, getFilelistFromZip, getFileCached, fetchRepositoryZipFile } from './getApi'; 
+/*
 import * as cv from 'uw-content-validation';
 import checkUSFMText from 'uw-content-validation';
 import checkMarkdownText from 'uw-content-validation';
@@ -8,7 +9,8 @@ import checkPlainText from 'uw-content-validation';
 import checkYAMLText from 'uw-content-validation';
 import checkManifestText from 'uw-content-validation';
 import checkTN_TSVText from 'uw-content-validation';
-
+*/
+import {checkManifestText, checkMarkdownText, checkPlainText, checkTN_TSVText, checkUSFMText, checkYAMLText} from 'uw-content-validation';
 
 /*
     checkRepo
@@ -247,8 +249,8 @@ export async function checkFileContents(languageCode, filename, fileContent, giv
     const bookID = filenameMain.substring(filenameMain.length - 3);
     console.log(`Have USFM bookcode=${bookID}`);
     //console.assert(books.isValidBookID(bookID), `checkFileContents: '${bookID}' is not a valid USFM book identifier`);
-    console.log("type of checkUSFMText is:", typeof(cv.checkUSFMText))
-    checkFileResult = cv.checkUSFMText(languageCode, bookID, filename, fileContent, ourCFLocation, checkingOptions);
+    console.log("type of checkUSFMText is:", typeof(checkUSFMText))
+    checkFileResult = checkUSFMText(languageCode, bookID, filename, fileContent, ourCFLocation, checkingOptions);
   } else if (filename.toLowerCase().endsWith('.sfm')) {
     const filenameMain = filename.substring(0, filename.length - 4); // drop .sfm
     console.log(`Have SFM filenameMain=${filenameMain}`);

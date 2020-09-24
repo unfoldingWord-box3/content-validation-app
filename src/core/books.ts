@@ -93,8 +93,21 @@ const extraBookList = ['FRT','BAK'];
 export const isOptionalValidBookID = (bookId: string) => {
   return !bookId || bookId.toLowerCase() in data || extraBookList.indexOf(bookId) >= 0;
 }
-export const isValidBookID = (bookId: string) => {
-  return bookId.toLowerCase() in data || extraBookList.indexOf(bookId) >= 0;
+export const isValidBookID = (id: string) => {
+  const _id = id.toLowerCase();
+  for (let i=0; i < data.length; i++) {
+    if ( data[i].id === _id ) {
+      return true;
+    }
+  }
+  const __id = id.toUpperCase();
+  for (let i=0; i < extraBookList.length; i++) {
+    if ( extraBookList[i] === __id ) {
+      return true;
+    }
+  }
+
+  return false;
 }
 export const usfmNumberNameById = (id: string) => {
   for (let i=0; i < data.length; i++) {

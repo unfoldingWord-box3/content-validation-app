@@ -125,17 +125,7 @@ const useStyles = makeStyles((theme: Theme) =>
     offset: {...theme.mixins.toolbar},
   }),
 );
-/*
-const GreenCheckbox = withStyles({
-  root: {
-    color: green[400],
-    '&$checked': {
-      color: green[600],
-    },
-  },
-  checked: {},
-})((props: CheckboxProps) => <Checkbox color="default" {...props} />);
-*/
+
 interface bpStateIF { [x: string]: boolean[]; };
 
 function joinBookIds(state: bpStateIF ): string[] {
@@ -146,21 +136,20 @@ function joinBookIds(state: bpStateIF ): string[] {
       y.push(books.bookIdByTitle(x[i]));
     }
   }
-  //return y.join();
   return y;
 }
 
     
 function getSteps() {
-  return ['Select Books', 'Select Organization and Language', 'Content Validation Details'];
+  return ['Select Organization and Language', 'Select Books', 'Content Validation Details'];
 }
 
 function getStepContent(step: number) {
   switch (step) {
     case 0:
-      return 'Select books, then click Next to generate book package details';
-    case 1:
       return 'Select Organization and Language';
+    case 1:
+      return 'Select books, then click Next to generate book package details';
     case 2:
       return 'Content Validation Results';
     default:
@@ -448,7 +437,28 @@ export default function App() {
           </div>
 
           <div className={classes.alignItemsAndJustifyContent}>
-            {(activeStep === 0) && (
+
+          {(activeStep === 0) && (
+              <>
+              <div>
+                <Paper>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">Languages</FormLabel>
+                    <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
+                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
+                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
+                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
+                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
+                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
+                    </RadioGroup>
+                  </FormControl>
+                </Paper>
+              </div>
+              </>
+            )}
+
+
+            {(activeStep === 1) && (
               <Grid container spacing={3}>
                 <Grid item xs={6}>
                   <Paper>
@@ -504,25 +514,6 @@ export default function App() {
               </Grid>
             )}
 
-
-            {(activeStep === 1) && (
-              <>
-              <div>
-                <Paper>
-                  <FormControl component="fieldset">
-                    <FormLabel component="legend">Languages</FormLabel>
-                    <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
-                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
-                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
-                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
-                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
-                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
-                    </RadioGroup>
-                  </FormControl>
-                </Paper>
-              </div>
-              </>
-            )}
 
             {(activeStep === 2) && (
               <>
