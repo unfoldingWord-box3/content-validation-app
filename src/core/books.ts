@@ -87,3 +87,21 @@ export const bookTitleById = (id: string) => {
   }
   return "";
 }
+
+const extraBookList = ['FRT','BAK'];
+
+export const isOptionalValidBookID = (bookId: string) => {
+  return !bookId || bookId.toLowerCase() in data || extraBookList.indexOf(bookId) >= 0;
+}
+export const isValidBookID = (bookId: string) => {
+  return bookId.toLowerCase() in data || extraBookList.indexOf(bookId) >= 0;
+}
+export const usfmNumberNameById = (id: string) => {
+  for (let i=0; i < data.length; i++) {
+    if ( data[i].id === id ) {
+      return data[i].usfm;
+    }
+  }
+  throw new Error(`usfmNumberName() given invalid bookId: '${id}'`);
+}
+
