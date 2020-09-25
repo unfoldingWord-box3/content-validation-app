@@ -34,13 +34,14 @@ import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
-import {clearCacheAndPreloadRepos} from 'uw-content-validation';
+import {clearCacheAndPreloadRepos} from './core/getApi';
 
-async function doInitialization() {
-  const username = 'unfoldingword';
-  const language_code = 'en';
+async function doInitialization(username: string,language_code: string) {
+  //const username = 'unfoldingword';
+  //const language_code = 'en';
+  console.log("doInitialization() username, lang:", username, language_code);
   const branch = 'master'
-  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch);
+  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch, ['TA', 'TW', 'TQ']);
   if (!success) {
       console.log(`Failed to pre-load all repos`)
   }      
@@ -174,6 +175,14 @@ export default function App() {
   const [lang, setLang] = React.useState('en');
 
   /* ----------------------------------------------------------
+      Prefetch the orginal languages, which are in
+      org=unfoldingword and lang is ignored; since they are
+      in a fixed location.
+  */
+  //console.log("Prefetching Original Language Repos!"); 
+  //clearCacheAndPreloadRepos('unfoldingword', 'en', ['rut','jud'], 'master', []);
+
+  /* ----------------------------------------------------------
       Stepper
   */
   const steps = getSteps();
@@ -212,14 +221,16 @@ export default function App() {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
     }
-
+    if ( activeStep === 0 ) {
+      // time to preload cache!
+      doInitialization(org,lang);
+    }
     setActiveStep(prevActiveStep => prevActiveStep + 1);
     setSkipped(newSkipped);
   };
 
   let query = useQuery();
   if ( activeStep === 0 && queryProcessedOnce === false ) {
-    doInitialization();
     queryProcessedOnce = true;
     let bks   = query.get("books");
     if ( bks !== null ) {
@@ -335,7 +346,7 @@ export default function App() {
     Hindi (HI)/translationCore-Create-BCS
     Kannada (KN)/translationCore-Create-BCS
     Latin-American Spanish (ES-419)/Es-419_gl
-*/
+  */
   const handleOrgLangChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
     let val = (event.target as HTMLInputElement).value;
     let org  = 'unfoldingword';

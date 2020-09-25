@@ -4,7 +4,6 @@ import localforage from 'localforage';
 import { setup } from 'axios-cache-adapter';
 import JSZip from 'jszip';
 import * as books from './books';
-// import { consoleLogObject } from '../core/utilities';
 
 
 const baseURL = 'https://git.door43.org/';
