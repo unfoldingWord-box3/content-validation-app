@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Typography } from '@material-ui/core';
 
-import {checkBookPackage} from 'uw-content-validation';
+import {checkBookPackage} from './core/book-package-check';
 import ValidationNotices from './ValidationNotices';
 
 function BookPackageContentValidator({bookID, username, language_code}) {

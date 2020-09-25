@@ -34,13 +34,14 @@ import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
-import {clearCacheAndPreloadRepos} from 'uw-content-validation';
+import {clearCacheAndPreloadRepos} from './core/getApi';
 
-async function doInitialization() {
-  const username = 'unfoldingword';
-  const language_code = 'en';
+async function doInitialization(username: string,language_code: string) {
+  //const username = 'unfoldingword';
+  //const language_code = 'en';
+  console.log("doInitialization() username, lang:", username, language_code);
   const branch = 'master'
-  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch);
+  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch, ['TA', 'TW', 'TQ']);
   if (!success) {
       console.log(`Failed to pre-load all repos`)
   }      
@@ -125,17 +126,7 @@ const useStyles = makeStyles((theme: Theme) =>
     offset: {...theme.mixins.toolbar},
   }),
 );
-/*
-const GreenCheckbox = withStyles({
-  root: {
-    color: green[400],
-    '&$checked': {
-      color: green[600],
-    },
-  },
-  checked: {},
-})((props: CheckboxProps) => <Checkbox color="default" {...props} />);
-*/
+
 interface bpStateIF { [x: string]: boolean[]; };
 
 function joinBookIds(state: bpStateIF ): string[] {
@@ -146,21 +137,20 @@ function joinBookIds(state: bpStateIF ): string[] {
       y.push(books.bookIdByTitle(x[i]));
     }
   }
-  //return y.join();
   return y;
 }
 
     
 function getSteps() {
-  return ['Select Books', 'Select Organization and Language', 'Content Validation Details'];
+  return ['Select Organization and Language', 'Select Books', 'Content Validation Details'];
 }
 
 function getStepContent(step: number) {
   switch (step) {
     case 0:
-      return 'Select books, then click Next to generate book package details';
-    case 1:
       return 'Select Organization and Language';
+    case 1:
+      return 'Select books, then click Next to generate book package details';
     case 2:
       return 'Content Validation Results';
     default:
@@ -183,6 +173,14 @@ export default function App() {
   const [skipped, setSkipped] = React.useState(new Set<number>());
   const [org, setOrg]   = React.useState('unfoldingword');
   const [lang, setLang] = React.useState('en');
+
+  /* ----------------------------------------------------------
+      Prefetch the orginal languages, which are in
+      org=unfoldingword and lang is ignored; since they are
+      in a fixed location.
+  */
+  //console.log("Prefetching Original Language Repos!"); 
+  //clearCacheAndPreloadRepos('unfoldingword', 'en', ['rut','jud'], 'master', []);
 
   /* ----------------------------------------------------------
       Stepper
@@ -223,14 +221,16 @@ export default function App() {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
     }
-
+    if ( activeStep === 0 ) {
+      // time to preload cache!
+      doInitialization(org,lang);
+    }
     setActiveStep(prevActiveStep => prevActiveStep + 1);
     setSkipped(newSkipped);
   };
 
   let query = useQuery();
   if ( activeStep === 0 && queryProcessedOnce === false ) {
-    doInitialization();
     queryProcessedOnce = true;
     let bks   = query.get("books");
     if ( bks !== null ) {
@@ -346,7 +346,7 @@ export default function App() {
     Hindi (HI)/translationCore-Create-BCS
     Kannada (KN)/translationCore-Create-BCS
     Latin-American Spanish (ES-419)/Es-419_gl
-*/
+  */
   const handleOrgLangChange = () => (event: React.ChangeEvent<HTMLInputElement>) => {
     let val = (event.target as HTMLInputElement).value;
     let org  = 'unfoldingword';
@@ -448,7 +448,28 @@ export default function App() {
           </div>
 
           <div className={classes.alignItemsAndJustifyContent}>
-            {(activeStep === 0) && (
+
+          {(activeStep === 0) && (
+              <>
+              <div>
+                <Paper>
+                  <FormControl component="fieldset">
+                    <FormLabel component="legend">Languages</FormLabel>
+                    <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
+                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
+                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
+                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
+                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
+                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
+                    </RadioGroup>
+                  </FormControl>
+                </Paper>
+              </div>
+              </>
+            )}
+
+
+            {(activeStep === 1) && (
               <Grid container spacing={3}>
                 <Grid item xs={6}>
                   <Paper>
@@ -504,25 +525,6 @@ export default function App() {
               </Grid>
             )}
 
-
-            {(activeStep === 1) && (
-              <>
-              <div>
-                <Paper>
-                  <FormControl component="fieldset">
-                    <FormLabel component="legend">Languages</FormLabel>
-                    <RadioGroup aria-label="orgLang" name="orgLang" value={lang} onChange={handleOrgLangChange()}>
-                      <FormControlLabel value="en" control={<Radio />} label="English (unfoldingWord)" />
-                      <FormControlLabel value="ru" control={<Radio />} label="Russian (ru_gl)" />
-                      <FormControlLabel value="hi" control={<Radio />} label="Hindi (translationCore-Create-BCS)" />
-                      <FormControlLabel value="kn" control={<Radio />} label="Kannada (translationCore-Create-BCS)" />
-                      <FormControlLabel value="es-419" control={<Radio />} label="Latin-American Spanish (Es-419_gl)" />
-                    </RadioGroup>
-                  </FormControl>
-                </Paper>
-              </div>
-              </>
-            )}
 
             {(activeStep === 2) && (
               <>
