@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Typography } from '@material-ui/core';
 
-import {checkBookPackage} from './core/book-package-check';
+import { checkBookPackage } from './core/book-package-check';
 import ValidationNotices from './ValidationNotices';
+import {fetchRepositoryZipFile, getFileCached, getFilelistFromZip} from "./core/getApi";
 
 function BookPackageContentValidator({bookID, username, language_code}) {
     //const username = 'unfoldingword';
@@ -11,8 +12,11 @@ function BookPackageContentValidator({bookID, username, language_code}) {
     // Check a single Bible book across many repositories
     const [result, setResultValue] = useState("Waiting-CheckBookPackage");
 
-    let checkingOptions = { // Uncomment any of these to test them
-        // 'extractLength': 25,
+    const checkingOptions = {
+      getFile: getFileCached,
+      fetchRepositoryZipFile: fetchRepositoryZipFile,
+      getFilelistFromZip: getFilelistFromZip,
+      taRepoUsername: username
     };
 
     useEffect(() => {
@@ -22,6 +26,11 @@ function BookPackageContentValidator({bookID, username, language_code}) {
 
             // Display our "waiting" message
             setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
+
+            // TODO: should we preload ULT ans UST?
+            // PreLoadRepos(username, language_code, [bookID], 'master', [], false).then(() => {
+            //   console.log(`PreLoadRepos`)
+            // });
 
             const rawCBPResults = await checkBookPackage(username, language_code, bookID, setResultValue, checkingOptions);
             //console.log("rawCBPResults=", rawCBPResults);
