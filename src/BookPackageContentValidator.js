@@ -3,7 +3,7 @@ import { Typography } from '@material-ui/core';
 
 import { checkBookPackage } from './core/book-package-check';
 import ValidationNotices from './ValidationNotices';
-import {fetchRepositoryZipFile, getFileCached, getFilelistFromZip} from "./core/getApi";
+import { fetchRepositoryZipFile, getFileCached, getFilelistFromZip } from "./core/getApi";
 
 function BookPackageContentValidator({bookID, username, language_code}) {
     //const username = 'unfoldingword';
@@ -27,7 +27,7 @@ function BookPackageContentValidator({bookID, username, language_code}) {
             // Display our "waiting" message
             setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
 
-            // TODO: should we preload ULT ans UST?
+            // TODO: should we preload ULT and UST?
             // PreLoadRepos(username, language_code, [bookID], 'master', [], false).then(() => {
             //   console.log(`PreLoadRepos`)
             // });
