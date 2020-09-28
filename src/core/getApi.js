@@ -20,7 +20,7 @@ export function getUserNameOverrideForRepo(username, repo) {
     username = 'unfoldingWord';
   } else if ((repo.indexOf('_glt') > 0)  || (repo.indexOf('_gst') > 0)) {
     username = 'STR';
-  } else if (['hi_tw'].includes(repo)) {
+  } else if (['hi_tw', 'hi_tq'].includes(repo)) {
     username = 'STR';
   }
 
@@ -465,7 +465,7 @@ export async function getFileListFromZip({ username, repository, branch, optiona
           if (relativePath.length
             && !relativePath.startsWith('.git') // skips files in these folders
             && !relativePath.startsWith('.apps') // skips files in this folder
-            && (!optionalPrefix || relativePath.startsWith(optionalPrefix))) // it's the correct prefix
+            && (!optionalPrefix || relativePath.toLowerCase().startsWith(optionalPrefix))) // it's the correct prefix
             pathList.push(relativePath);
         }
       })
