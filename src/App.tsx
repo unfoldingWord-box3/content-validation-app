@@ -34,17 +34,29 @@ import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
-import {clearCacheAndPreloadRepos} from './core/getApi';
+import { clearCaches, PreLoadRepos } from './core/getApi';
 
-async function doInitialization(username: string,language_code: string) {
-  //const username = 'unfoldingword';
-  //const language_code = 'en';
-  console.log("doInitialization() username, lang:", username, language_code);
-  const branch = 'master'
-  const success = await clearCacheAndPreloadRepos(username, language_code, [], branch, ['TA', 'TW', 'TQ']);
-  if (!success) {
-      console.log(`Failed to pre-load all repos`)
-  }      
+async function doInitialization() {
+    //const username = 'unfoldingword';
+    //const language_code = 'en';
+    console.log("doInitialization()");
+    const branch = 'master'
+    await clearCaches();
+    const success = await PreLoadRepos('unfoldingword', '', branch, [], true);
+    if (!success) {
+        console.log(`Failed to pre-load original language repos`)
+    }
+}
+
+async function doLanguageInitialization(username: string,language_code: string) {
+    //const username = 'unfoldingword';
+    //const language_code = 'en';
+    console.log("doLanguageInitialization() username, lang:", username, language_code);
+    const branch = 'master'
+    const success = await PreLoadRepos(username, language_code, branch, ['TA', 'TW', 'TN', 'TQ'], false, true);
+    if (!success) {
+        console.log(`Failed to pre-load all repos`)
+    }
 }
 
 const drawerWidth = 240;
@@ -122,7 +134,7 @@ const useStyles = makeStyles((theme: Theme) =>
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-    },  
+    },
     offset: {...theme.mixins.toolbar},
   }),
 );
@@ -140,7 +152,7 @@ function joinBookIds(state: bpStateIF ): string[] {
   return y;
 }
 
-    
+
 function getSteps() {
   return ['Select Organization and Language', 'Select Books', 'Content Validation Details'];
 }
@@ -168,7 +180,7 @@ function useQuery() {
 }
 
 export default function App() {
-  const [state, setState] = React.useState({ ...books.titlesToBoolean() }); 
+  const [state, setState] = React.useState({ ...books.titlesToBoolean() });
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set<number>());
   const [org, setOrg]   = React.useState('unfoldingword');
@@ -179,7 +191,7 @@ export default function App() {
       org=unfoldingword and lang is ignored; since they are
       in a fixed location.
   */
-  //console.log("Prefetching Original Language Repos!"); 
+  //console.log("Prefetching Original Language Repos!");
   //clearCacheAndPreloadRepos('unfoldingword', 'en', ['rut','jud'], 'master', []);
 
   /* ----------------------------------------------------------
@@ -223,7 +235,7 @@ export default function App() {
     }
     if ( activeStep === 0 ) {
       // time to preload cache!
-      doInitialization(org,lang);
+        doLanguageInitialization(org, lang);
     }
     setActiveStep(prevActiveStep => prevActiveStep + 1);
     setSkipped(newSkipped);
@@ -231,6 +243,7 @@ export default function App() {
 
   let query = useQuery();
   if ( activeStep === 0 && queryProcessedOnce === false ) {
+    doInitialization();
     queryProcessedOnce = true;
     let bks   = query.get("books");
     if ( bks !== null ) {
@@ -253,7 +266,7 @@ export default function App() {
         state[name][1] = false;
         let b: boolean[] = [];
         b[0] = true;
-        b[1] = false;  
+        b[1] = false;
       }
       handleNext();
     }
@@ -284,7 +297,7 @@ export default function App() {
       let name = states[i];
       let b: boolean[] = [];
       b[0] = false;
-      b[1] = false;  
+      b[1] = false;
       setState({ ...state, [name]: b });
     }
   };
@@ -297,7 +310,7 @@ export default function App() {
       let name = states[i];
       let b: boolean[] = [];
       b[0] = true;
-      b[1] = false;  
+      b[1] = false;
       setState({ ...state, [name]: b });
     }
   };
@@ -310,7 +323,7 @@ export default function App() {
       let name = states[i];
       let b: boolean[] = [];
       b[0] = false;
-      b[1] = false;  
+      b[1] = false;
       setState({ ...state, [name]: b });
     }
   };
@@ -323,16 +336,16 @@ export default function App() {
       let name = states[i];
       let b: boolean[] = [];
       b[0] = true;
-      b[1] = false;  
+      b[1] = false;
       setState({ ...state, [name]: b });
     }
   };
 
-  
+
   /* ----------------------------------------------------------
-      Form/checkbox stuff 
+      Form/checkbox stuff
   */
-  // these are for the initial book seletion
+  // these are for the initial book selection
   const handleChange = (name: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
     let b: boolean[] = [];
     b[0] = event.target.checked;
@@ -367,11 +380,11 @@ export default function App() {
     setOrg(org);
     setLang(lang);
   };
-  
+
   return (
     <div className={classes.root}>
       <CssBaseline />
-      <AppBar position="fixed" 
+      <AppBar position="fixed"
           className={clsx(classes.appBar, {[classes.appBarShift]: open })}>
         <Toolbar>
           <IconButton
@@ -405,7 +418,7 @@ export default function App() {
         <Divider />
           <Typography>Nothing here to see!</Typography>
         <Divider />
-      </Drawer> 
+      </Drawer>
       <Paper>
         <Typography> <br/> <br/> </Typography>
         <Stepper activeStep={activeStep}>
@@ -485,12 +498,12 @@ export default function App() {
                     <FormControl required component="fieldset" className={classes.formControl}>
                     <FormLabel component="legend">Old Testament</FormLabel>
                     <FormGroup>
-                      {books.oldTestament().map(t => 
+                      {books.oldTestament().map(t =>
                         <FormControlLabel
                           control={<Checkbox checked={state[t][0]} onChange={handleChange(t)} value={t} />}
                           label={t} key={t}
                         />
-                      )}                
+                      )}
                     </FormGroup>
                     <FormHelperText />
                     </FormControl>
@@ -511,12 +524,12 @@ export default function App() {
                     <FormControl required component="fieldset" className={classes.formControl}>
                     <FormLabel component="legend">New Testament</FormLabel>
                     <FormGroup>
-                      {books.newTestament().map(t => 
+                      {books.newTestament().map(t =>
                         <FormControlLabel
                           control={<Checkbox checked={state[t][0]} onChange={handleChange(t)} value={t} />}
                           label={t} key={t}
                         />
-                      )}                
+                      )}
                     </FormGroup>
                     <FormHelperText />
                     </FormControl>
@@ -531,7 +544,7 @@ export default function App() {
               <div>
                 <Paper>
                 {
-                  joinBookIds(state).map(id => 
+                  joinBookIds(state).map(id =>
                     <div>
                     <Typography variant="h6" >Book Package for {books.bookTitleById(id)} </Typography>
                     <BookPackageContentValidator bookID={id} key={id} username={org} language_code={lang} />
