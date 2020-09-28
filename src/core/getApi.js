@@ -70,6 +70,9 @@ export async function getUnZippedFile(path) {
  * @return {Promise<*>}
  */
 export async function getFileCached({ username, repository, path, branch }) {
+
+  username = getUserNameOverrideForRepo(username, repository);
+
   const filePath = Path.join(username, repository, path, branch);
   // console.log(`getFileCached(${username}, ${repository}, ${path}, ${branch})…`);
   let contents = await getUnZippedFile(filePath);
@@ -173,7 +176,27 @@ export function formRepoName(languageCode, repoCode) {
   return repoName;
 }
 
-
+/**
+ *
+ * @param {string} username
+ * @param {string} repo
+ * @return {string} username to use
+ */
+export function getUserNameOverrideForRepo(username, repo) {
+  //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
+  const originalUsername = username;
+  if (['el-x-koine_ugnt', 'hbo_uhb'].includes(repo)) {
+    username = 'unfoldingWord';
+  } else {
+    if ((repo.indexOf('_glt') > 0)  || (repo.indexOf('_gst') > 0)) {
+      username = 'STR';
+    }
+  }
+  if (username.toLowerCase() !== originalUsername.toLowerCase()) {
+    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repo}') - changing username to ${username}`);
+  }
+  return username;
+}
 /**
  * add new repo to list if missing
  * @param {string} repos
@@ -366,6 +389,8 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
   // https://git.door43.org/{username}/{repository}/archive/{branch}.zip
   console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})…`);
 
+  username = getUserNameOverrideForRepo(username, repository);
+
   if (!forceLoad) { // see if we already have in zipStore
     const zipBlob = await getZipFromStore(username, repository, branch);
     if (zipBlob) {
@@ -403,6 +428,8 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
  */
 export async function getFileListFromZip({ username, repository, branch, optionalPrefix }) {
   // console.log(`getFileListFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
+
+  username = getUserNameOverrideForRepo(username, repository);
 
   const uri = zipUri({ username, repository, branch });
   let zipBlob = await getZipFromStore(username, repository, branch);
