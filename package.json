@@ -36,7 +36,8 @@
     "react-router-dom": "^5.1.2",
     "react-scripts": "^3.4.1",
     "typescript": "^4.0.2",
-    "uw-content-validation": "^0.8.12"
+    "uw-content-validation": "^0.8.12",
+    "yaml": "^1.10.0"
   },
   "scripts": {
     "start": "react-scripts start",

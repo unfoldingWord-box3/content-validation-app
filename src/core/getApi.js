@@ -1,5 +1,5 @@
 import Path from 'path';
-// import YAML from 'js-yaml-parser';
+import yaml from 'yaml';
 import localforage from 'localforage';
 import { setup } from 'axios-cache-adapter';
 import JSZip from 'jszip';
@@ -95,6 +95,49 @@ export async function getFileCached({ username, repository, path, branch }) {
 }
 
 /**
+ * Retrieve manifest.yaml from requested repo
+ * @param {string} username
+ * @param {string} repository
+ * @param {string} branch
+ * @return {Promise<[]|*[]>} resolves to manifest contents if downloaded (else undefined)
+ */
+async function cachedGetManifest({ username, repository, branch }) {
+  // console.log(`cachedGetManifest(${username}, ${repository}, ${branch})…`);
+
+  const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
+  let formData;
+  try {
+    formData = yaml.parse(manifestContents);
+    // console.log("yaml.parse(YAMLText) got formData", JSON.stringify(formData));
+  }
+  catch (yamlError) {
+    console.error(`${username} ${repository} ${branch} manifest yaml parse error: ${yamlError.message}`);
+  }
+  return formData;
+}
+
+
+/**
+ * Retrieve manifest.yaml from requested repo
+ * @param {string} username
+ * @param {string} repository
+ * @param {string} branch
+ * @param {string} bookID -- 3-character USFM book code
+ * @return {Promise<[]|*[]>} resolves to filename from the manifest for the book (else undefined)
+ */
+export async function cachedGetBookFilenameFromManifest({ username, repository, branch, bookID }) {
+  // console.log(`cachedGetBookFilenameFromManifest(${username}, ${repository}, ${branch}, ${bookID})…`);
+  const manifestJSON = await cachedGetManifest({ username, repository, branch });
+  for (const projectEntry of manifestJSON.projects) {
+    if (projectEntry.identifier === bookID) {
+      let bookPath = projectEntry.path;
+      if (bookPath.startsWith('./')) bookPath = bookPath.substring(2);
+      return bookPath;
+    }
+  }
+}
+
+/**
  * clear all the stores
  * @return {Promise<void>}
  */
@@ -110,19 +153,26 @@ export async function clearCaches() {
 }
 
 /**
- * @description - Creates and returns a Door43 repoName string
+ * @description - Forms and returns a Door43 repoName string
  * @param {String} languageCode - the language code, e.g., 'en'
  * @param {String} repoCode - the repo code, e.g., 'TQ'
  * @return {String} - the Door43 repoName string
  */
-export function getRepoName(languageCode, repoCode) {
-  //    console.log(`getRepoName('${languageCode}', '${repoCode}')…`);
+export function formRepoName(languageCode, repoCode) {
+  //    console.log(`formRepoName('${languageCode}', '${repoCode}')…`);
+
+  // TODO: Should we also check the username 'unfoldingWord' and/or 'Door43-Catalog' here???
+  //        (We don't currently have the username available in this function.)
+  if (repoCode === 'LT') repoCode = languageCode === 'en' ? 'ULT' : 'GLT';
+  if (repoCode === 'ST') repoCode = languageCode === 'en' ? 'UST' : 'GST';
+
   let repo_languageCode = languageCode;
   if (repoCode === 'UHB') repo_languageCode = 'hbo';
   else if (repoCode === 'UGNT') repo_languageCode = 'el-x-koine';
   const repoName = `${repo_languageCode}_${repoCode.toLowerCase()}`;
   return repoName;
 }
+
 
 /**
  * add new repo to list if missing
@@ -148,6 +198,7 @@ function addIfMissing(repos, newRepo, addToStart = true) {
  * @param {string} branch - optional, defaults to master
  * @param {Array} repos - optional, list of additional repos to pre-load
  * @param {boolean} loadOriginalLangs - if true will download original language books
+ * @param {boolean} loadUltAndUst
  * @return {Promise<Boolean>} resolves to true if file loads are successful
  */
 export async function PreLoadRepos(username, languageCode, branch = 'master', repos = [],
@@ -156,20 +207,20 @@ export async function PreLoadRepos(username, languageCode, branch = 'master', re
   console.log(`PreLoadRepos(${username}, ${languageCode}, ${branch}, ${repos}, ${loadOriginalLangs})…`);
 
   let success = true;
-  const repos_ = repos.map((repo) => (getRepoName(languageCode, repo)));
+  const repos_ = repos.map((repo) => (formRepoName(languageCode, repo)));
 
   if (loadOriginalLangs) {
     // make sure we have the original languages needed
     for (const origLangBibles of [ 'UHB', 'UGNT' ]) {
-      addIfMissing(repos_, getRepoName(languageCode, origLangBibles), true);
+      addIfMissing(repos_, formRepoName(languageCode, origLangBibles), true);
     }
   }
 
   if (loadUltAndUst) {
     const LT = languageCode === 'en' ? 'ULT' : 'GLT';
     const ST = languageCode === 'en' ? 'UST' : 'GST';
-    addIfMissing(repos_, getRepoName(languageCode, LT), false);
-    addIfMissing(repos_, getRepoName(languageCode, ST), false);
+    addIfMissing(repos_, formRepoName(languageCode, LT), false);
+    addIfMissing(repos_, formRepoName(languageCode, ST), false);
   }
 
   // load all the repos needed
@@ -350,8 +401,8 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
  * @param {string} optionalPrefix - to filter by book, etc.
  * @return {Promise<[]|*[]>}  resolves to file list
  */
-export async function getFilelistFromZip({ username, repository, branch, optionalPrefix }) {
-  // console.log(`getFilelistFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
+export async function getFileListFromZip({ username, repository, branch, optionalPrefix }) {
+  // console.log(`getFileListFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
 
   const uri = zipUri({ username, repository, branch });
   let zipBlob = await getZipFromStore(username, repository, branch);
@@ -390,12 +441,12 @@ export async function getFilelistFromZip({ username, repository, branch, optiona
         }
       })
     }
-    // else console.log("  getFilelistFromZip: No zipBlob");
+    // else console.log("  getFileListFromZip: No zipBlob");
   } catch (error) {
     console.log(`ERROR: getFilelistFromZip got: ${error.message}`);
   }
 
-  // console.log(`getFilelistFromZip is returning (${pathList.length}) entries: ${pathList}`);
+  // console.log(`getFileListFromZip is returning (${pathList.length}) entries: ${pathList}`);
   return pathList;
 }
 
