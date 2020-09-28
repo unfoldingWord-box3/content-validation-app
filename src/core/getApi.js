@@ -126,12 +126,17 @@ export function getRepoName(languageCode, repoCode) {
 
 /**
  * add new repo to list if missing
- * @param repos
- * @param newRepo
+ * @param {string} repos
+ * @param {string} newRepo
+ * @param {boolean} addToStart - if true add to start
  */
-function addIfMissing(repos, newRepo) {
+function addIfMissing(repos, newRepo, addToStart = true) {
   if (!repos.includes(newRepo)) {
-    repos.unshift(newRepo);
+    if (addToStart) {
+      repos.unshift(newRepo);
+    } else {
+      repos.push(newRepo);
+    }
   }
 }
 
@@ -140,14 +145,15 @@ function addIfMissing(repos, newRepo) {
  *   TRICKY: note that even if the user is super fast in selecting books and clicking next, it will not hurt anything.  getFile() would just be fetching files directly from repo until the zips are loaded.  After that the files would be pulled out of zipStore.
  * @param {string} username
  * @param {string} languageCode
- * @param {Array} bookIDList - one or more books that will be preloaded
  * @param {string} branch - optional, defaults to master
  * @param {Array} repos - optional, list of additional repos to pre-load
  * @param {boolean} loadOriginalLangs - if true will download original language books
  * @return {Promise<Boolean>} resolves to true if file loads are successful
  */
-export async function PreLoadRepos(username, languageCode, bookIDList, branch = 'master', repos = [], loadOriginalLangs = false) {
-  console.log(`PreLoadRepos(${username}, ${languageCode}, ${bookIDList}, ${branch}, ${repos}, ${loadOriginalLangs})…`);
+export async function PreLoadRepos(username, languageCode, branch = 'master', repos = [],
+                                   loadOriginalLangs = false,
+                                   loadUltAndUst = false) {
+  console.log(`PreLoadRepos(${username}, ${languageCode}, ${branch}, ${repos}, ${loadOriginalLangs})…`);
 
   let success = true;
   const repos_ = repos.map((repo) => (getRepoName(languageCode, repo)));
@@ -155,19 +161,15 @@ export async function PreLoadRepos(username, languageCode, bookIDList, branch = 
   if (loadOriginalLangs) {
     // make sure we have the original languages needed
     for (const origLangBibles of [ 'UHB', 'UGNT' ]) {
-      addIfMissing(repos_, getRepoName(languageCode, origLangBibles));
+      addIfMissing(repos_, getRepoName(languageCode, origLangBibles), true);
     }
   }
 
-  if (bookIDList && Array.isArray(bookIDList)) {
-    for (const bookID of bookIDList) {
-      if (bookID !== 'OBS') {
-        const LT = languageCode === 'en' ? 'ULT' : 'GLT';
-        const ST = languageCode === 'en' ? 'UST' : 'GST';
-        addIfMissing(repos_, getRepoName(languageCode, LT));
-        addIfMissing(repos_, getRepoName(languageCode, ST));
-      }
-    }
+  if (loadUltAndUst) {
+    const LT = languageCode === 'en' ? 'ULT' : 'GLT';
+    const ST = languageCode === 'en' ? 'UST' : 'GST';
+    addIfMissing(repos_, getRepoName(languageCode, LT), false);
+    addIfMissing(repos_, getRepoName(languageCode, ST), false);
   }
 
   // load all the repos needed

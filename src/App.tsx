@@ -42,7 +42,7 @@ async function doInitialization() {
     console.log("doInitialization()");
     const branch = 'master'
     await clearCaches();
-    const success = await PreLoadRepos('unfoldingword', '', [], branch, [], true);
+    const success = await PreLoadRepos('unfoldingword', '', branch, [], true);
     if (!success) {
         console.log(`Failed to pre-load original language repos`)
     }
@@ -53,7 +53,7 @@ async function doLanguageInitialization(username: string,language_code: string) 
     //const language_code = 'en';
     console.log("doLanguageInitialization() username, lang:", username, language_code);
     const branch = 'master'
-    const success = await PreLoadRepos(username, language_code, [], branch, ['TA', 'TW', 'TN', 'TQ'], false);
+    const success = await PreLoadRepos(username, language_code, branch, ['TA', 'TW', 'TN', 'TQ'], false, true);
     if (!success) {
         console.log(`Failed to pre-load all repos`)
     }

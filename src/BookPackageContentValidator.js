@@ -27,11 +27,6 @@ function BookPackageContentValidator({bookID, username, language_code}) {
             // Display our "waiting" message
             setResultValue(<p style={{ color: 'red' }}>Waiting for check results for {username} {language_code} <b>{bookID}</b> book package…</p>);
 
-            // TODO: should we preload ULT and UST?
-            // PreLoadRepos(username, language_code, [bookID], 'master', [], false).then(() => {
-            //   console.log(`PreLoadRepos`)
-            // });
-
             const rawCBPResults = await checkBookPackage(username, language_code, bookID, setResultValue, checkingOptions);
             //console.log("rawCBPResults=", rawCBPResults);
             // Add some extra fields to our rawCBPResults object in case we need this information again later
