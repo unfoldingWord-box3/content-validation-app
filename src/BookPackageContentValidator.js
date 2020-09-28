@@ -15,7 +15,7 @@ function BookPackageContentValidator({bookID, username, language_code}) {
     const checkingOptions = {
       getFile: getFileCached,
       fetchRepositoryZipFile: fetchRepositoryZipFile,
-      getFilelistFromZip: getFileListFromZip,
+      getFileListFromZip: getFileListFromZip,
       taRepoUsername: username
     };
 

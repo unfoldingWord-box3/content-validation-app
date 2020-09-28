@@ -7,6 +7,29 @@ import JSZip from 'jszip';
 const baseURL = 'https://git.door43.org/';
 const apiPath = 'api/v1';
 
+/**
+ *
+ * @param {string} username
+ * @param {string} repo
+ * @return {string} username to use
+ */
+export function getUserNameOverrideForRepo(username, repo) {
+  //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
+  const originalUsername = username;
+  if (['el-x-koine_ugnt', 'hbo_uhb'].includes(repo)) {
+    username = 'unfoldingWord';
+  } else if ((repo.indexOf('_glt') > 0)  || (repo.indexOf('_gst') > 0)) {
+    username = 'STR';
+  } else if (['hi_tw'].includes(repo)) {
+    username = 'STR';
+  }
+
+  if (username.toLowerCase() !== originalUsername.toLowerCase()) {
+    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repo}') - changing username to ${username}`);
+  }
+  return username;
+}
+
 // caches failed http file fetches so we don't waste time with repeated attempts
 const failedStore = localforage.createInstance({
   driver: [localforage.INDEXEDDB],
@@ -176,27 +199,6 @@ export function formRepoName(languageCode, repoCode) {
   return repoName;
 }
 
-/**
- *
- * @param {string} username
- * @param {string} repo
- * @return {string} username to use
- */
-export function getUserNameOverrideForRepo(username, repo) {
-  //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
-  const originalUsername = username;
-  if (['el-x-koine_ugnt', 'hbo_uhb'].includes(repo)) {
-    username = 'unfoldingWord';
-  } else {
-    if ((repo.indexOf('_glt') > 0)  || (repo.indexOf('_gst') > 0)) {
-      username = 'STR';
-    }
-  }
-  if (username.toLowerCase() !== originalUsername.toLowerCase()) {
-    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repo}') - changing username to ${username}`);
-  }
-  return username;
-}
 /**
  * add new repo to list if missing
  * @param {string} repos
