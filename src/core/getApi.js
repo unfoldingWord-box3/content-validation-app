@@ -18,10 +18,6 @@ export function getUserNameOverrideForRepo(username, repo) {
   const originalUsername = username;
   if (['el-x-koine_ugnt', 'hbo_uhb'].includes(repo)) {
     username = 'unfoldingWord';
-  } else if ((repo.indexOf('_glt') > 0)  || (repo.indexOf('_gst') > 0)) {
-    username = 'STR';
-  } else if (['hi_tw', 'hi_tq'].includes(repo)) {
-    username = 'STR';
   }
 
   if (username.toLowerCase() !== originalUsername.toLowerCase()) {
@@ -186,6 +182,7 @@ export async function clearCaches() {
  */
 export function formRepoName(languageCode, repoCode) {
   //    console.log(`formRepoName('${languageCode}', '${repoCode}')…`);
+  repoCode = repoCode.toUpperCase();
 
   // TODO: Should we also check the username 'unfoldingWord' and/or 'Door43-Catalog' here???
   //        (We don't currently have the username available in this function.)

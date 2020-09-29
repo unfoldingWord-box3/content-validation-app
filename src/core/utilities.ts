@@ -1,5 +1,6 @@
 // utilities
 import * as books from 'uw-content-validation';
+import { formRepoName, getUserNameOverrideForRepo } from "./getApi";
 
 // function to convert an array to an object
 // with keys being 0..n
@@ -29,44 +30,65 @@ interface ObjectLiteral {
 }
 
 /**
+ * make sure references are a minimum of 2 digits, if not do zero padding
+ * @param reference
+ * @return reference with zero padding
+ */
+export const padRef2 = (reference: string) => {
+    if (reference) {
+        if (reference.length < 2) {
+            reference = '0' + reference;
+        }
+    }
+    return reference
+}
+
+/**
  * create link to repo
- * @param repo
+ * @param repoType
  * @param username
  * @param languageCode
  * @param bookID
  * @param lineNum
+ * @param rawData
  * @param branch
  */
-export const getLink = (repo: string, username: string, languageCode: string, bookID: string, lineNum: string, branch = `master`) => {
-    let repoName = `${languageCode.toLowerCase()}_${repo.toLowerCase()}`;
+export const getLink = (repoType: string, username: string, languageCode: string, bookID: string, lineNum: string,
+                        rowData: { [x: string]: any; }, rawData: { [x: string]: any; }, branch = `master`) => {
+    const repoName = formRepoName(languageCode, repoType);
     let extension = 'usfm';
     let view = 'src';
-    let namePrefix = '';
-    let repoUC = repo.toUpperCase();
-    if (repoUC === 'UHB') {
-        repoName = 'hbo_uhb';
-    }
-    if (repoUC === 'UGNT') {
-        repoName = 'el-x-koine_ugnt';
-    }
-    if (repoUC === 'TN') {
+    let fileName;
+    try {
+        fileName = books.usfmNumberName(bookID).toUpperCase();
+    } catch (e) {}
+    let repoTypeUC = repoType.toUpperCase();
+    if (repoTypeUC === 'TN') {
         view = 'blame';
         extension = 'tsv';
-        namePrefix = `${repoName}_`;
+        if (rawData.tsvFileName) {
+          fileName = rawData.tsvFileName.split(".tsv")[0]; // remove the extension
+        } else {
+          fileName = `${repoName}_${fileName}`;
+        }
+        //         bookNumberAndName = await cachedGetBookFilenameFromManifest({ username, repository: repoName, branch, bookID: bookID.toLowerCase() });
+    } else if (repoTypeUC === 'TQ') {
+        extension = 'md';
+        fileName = `${bookID}/${padRef2(rowData.C)}/${padRef2(rowData.V)}`;
     }
-    if (['TN', 'UHB', 'UGNT', 'ULT', 'UST'].includes(repoUC)) {
-        let bookNumberAndName;
-        try {
-            bookNumberAndName = books.usfmNumberName(bookID).toUpperCase();
-            let link = `https://git.door43.org/${username}/${repoName}/${view}/branch/${branch}/${namePrefix}${bookNumberAndName}.${extension}`;
+    username = getUserNameOverrideForRepo(username, repoName);
+    if (['TN', 'TQ', 'UHB', 'UGNT', 'ULT', 'UST', 'LT', 'ST'].includes(repoTypeUC)) {
+
+            let link = `https://git.door43.org/${username}/${repoName}/${view}/branch/${branch}/${fileName}.${extension}`;
             if (lineNum) {
                 link += `#L${lineNum}`;
             }
             return link;
             // const anchor = `<a href="${link}" target="_blank">${lineNum}</a>`;
             // return anchor;
-        } catch (e) {}
+
     }
+    console.log(`getLink() - could not find link for repo type ${repoType} for ${languageCode}`);
     return null;
 }
 
@@ -163,15 +185,16 @@ export const sortChapterVerse = (a: any, b: any) => {
 */
 // function to convert word frequency map
 // to an object suitable for MaterialTable
-export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string, 
-    renderLink: any, renderWithUnicodeLink: any, renderPriority: any) => 
+export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, languageCode: string, bookID: string,
+    renderLink: any, renderWithUnicodeLink: any, renderPriority: any,
+    rawData: { [x: string]: any; }) =>
 {
     let mt: ObjectLiteral = {};
     mt.title = "Validation Notices";
     mt.columns = [
         { title: 'Repo', field: 'extra' },
-        { 
-            title: 'Pri', 
+        {
+            title: 'Pri',
             field: 'priority',
             render: (rowData: any) => (renderPriority(rowData.priority))
         },
@@ -217,7 +240,7 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
         const rowData = ob[key];
         let _location = rowData.location;
         _location = _location.replace(/en ... book package from unfoldingword/, '' );
-        let _link = getLink(rowData.extra, username, languageCode, bookID, rowData.lineNumber);
+        let _link = getLink(rowData.extra, username, languageCode, bookID, rowData.lineNumber, rowData, rawData);
         mt.data.push({
             extra: rowData.extra,
             priority: rowData.priority,
