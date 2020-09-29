@@ -31,7 +31,8 @@ export const bookData = (bookId: string) => {
 };
 
 export const testament = (bookId: string) => {
-  const _testament = bookData(bookId).testament;
+    bookId = bookId.toLowerCase();
+    const _testament = bookData(bookId).testament;
   return _testament;
 };
 
@@ -80,7 +81,8 @@ export const bookIdByTitle = (title: string) => {
 }
 
 export const bookTitleById = (id: string) => {
-  for (let i=0; i < data.length; i++) {
+    id = id.toLowerCase();
+    for (let i=0; i < data.length; i++) {
     if ( data[i].id === id ) {
       return data[i].title;
     }
@@ -110,6 +112,7 @@ export const isValidBookID = (id: string) => {
   return false;
 }
 export const usfmNumberNameById = (id: string) => {
+  id = id.toLowerCase();
   for (let i=0; i < data.length; i++) {
     if ( data[i].id === id ) {
       return data[i].usfm;

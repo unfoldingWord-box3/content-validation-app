@@ -3,7 +3,7 @@ import { Typography } from '@material-ui/core';
 
 import { checkBookPackage } from './core/book-package-check';
 import ValidationNotices from './ValidationNotices';
-import { fetchRepositoryZipFile, getFileCached, getFilelistFromZip } from "./core/getApi";
+import { fetchRepositoryZipFile, getFileCached, getFileListFromZip } from "./core/getApi";
 
 function BookPackageContentValidator({bookID, username, language_code}) {
     //const username = 'unfoldingword';
@@ -15,7 +15,7 @@ function BookPackageContentValidator({bookID, username, language_code}) {
     const checkingOptions = {
       getFile: getFileCached,
       fetchRepositoryZipFile: fetchRepositoryZipFile,
-      getFilelistFromZip: getFilelistFromZip,
+      getFileListFromZip: getFileListFromZip,
       taRepoUsername: username
     };
 
