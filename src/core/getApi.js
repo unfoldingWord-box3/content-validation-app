@@ -7,21 +7,249 @@ import JSZip from 'jszip';
 const baseURL = 'https://git.door43.org/';
 const apiPath = 'api/v1';
 
+const repoDefaultMap = {
+  // format is organization and then repoName
+  hbo: {
+    UHB: "unfoldingWord/hbo_uhb",
+  },
+  'el-x-koine': {
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+  },
+  en: {
+    label: "English (unfoldingWord)",
+    UHB: "unfoldingWord/hbo_uhb",
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+    TA: "unfoldingWord/en_ta",
+    TN: "unfoldingWord/en_tn",
+    TW: "unfoldingWord/en_tw",
+    TQ: "unfoldingWord/en_tq",
+    ST: "unfoldingWord/en_ust",
+    LT: "unfoldingWord/en_ult",
+  },
+  hi: {
+    label: "Hindi (translationCore-Create-BCS)",
+    UHB: "unfoldingWord/hbo_uhb",
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+    TA: "translationCore-Create-BCS/hi_ta",
+    TN: "translationCore-Create-BCS/hi_tn",
+    TW: "translationCore-Create-BCS/hi_tw",
+    TQ: "translationCore-Create-BCS/hi_tq",
+    ST: "translationCore-Create-BCS/hi_gst",
+    LT: "translationCore-Create-BCS/hi_glt",
+  },
+  kn: {
+    label: "Kannada (translationCore-Create-BCS)",
+    UHB: "unfoldingWord/hbo_uhb",
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+    TA: "translationCore-Create-BCS/kn_ta",
+    TN: "translationCore-Create-BCS/kn_tn",
+    TW: "translationCore-Create-BCS/kn_tw",
+    TQ: "translationCore-Create-BCS/kn_tq",
+    ST: "translationCore-Create-BCS/kn_gst",
+    LT: "translationCore-Create-BCS/kn_glt",
+  },
+  'es-419': {
+    label: "Latin-American Spanish (Es-419_gl)",
+    UHB: "unfoldingWord/hbo_uhb",
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+    TA: "Es-419_gl/es-419_ta",
+    TN: "Es-419_gl/es-419_tn",
+    TW: "Es-419_gl/es-419_tw",
+    TQ: "Es-419_gl/es-419_tq",
+    ST: "Es-419_gl/es-419_gst",
+    LT: "Es-419_gl/es-419_glt",
+  },
+  ru: {
+    label: "Russian (ru_gl)",
+    UHB: "unfoldingWord/hbo_uhb",
+    UGNT: "unfoldingWord/el-x-koine_ugnt",
+    TA: "ru_gl/ru_ta",
+    TN: "ru_gl/ru_tn",
+    TW: "ru_gl/ru_tw",
+    TQ: "ru_gl/ru_tq",
+    ST: "ru_gl/ru_gst",
+    LT: "ru_gl/ru_glt",
+  }
+};
+
+let repoMap = repoDefaultMap;
+
+/**
+ * find settings for the language
+ * @param {object} newRepoMap
+ * @return {*}
+ */
+export function initRepoMap(newRepoMap = repoDefaultMap) {
+  console.log(`initRepoMap() - setting repo map to ${JSON.stringify(newRepoMap)}`)
+  repoMap = newRepoMap;
+}
+
+/**
+ * verify existence of single repo - missing repos are added to error
+ * @param {string} username
+ * @param {string} repository
+ * @param {Array} errors
+ * @param {string} repoType
+ * @param {string} language
+ * @param {string} branch
+ * @return {Promise<Array>}
+ */
+async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
+  // console.log(`verifyRepo(${username}, ${language}, ${repoType})`)
+  const repoExists = await repositoryExists({username, repository});
+  if (!repoExists) {
+    console.log(`verifyRepo(${username}, ${language}, ${repoType}) repo NOT found on DCS at ${username}/${repository}`)
+    errors.push({repoType, message: `${language}/${repoType} not found on DCS at ${username}/${repository}`, repoFound: false, manifestFound: false});
+  } else {
+    // if repo exists, verify that it has a manifest
+    const manifestJSON = await cachedGetManifest({ username, repository, branch });
+    if (!manifestJSON) {
+      console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found on DCS at ${username}/${repository}`)
+      errors.push({repoType, message: `${language}/${repoType} manifest was not found on DCS at ${username}/${repository}`, repoFound: true, manifestFound: false});
+    } else {
+      // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
+    }
+  }
+}
+
+/**
+ * make sure we find repos on DCS for a language
+ * @param {string} username
+ * @param {string} language
+ * @param {Array} repoTypes
+ * @param {string} branch
+ * @return {Promise<Array>} list of repo types that were not found on DCS
+ */
+export async function verifyRepos(username, language, repoTypes, branch = 'master') {
+  const errors = [];
+  const promises = [];
+  const startTime = new Date();
+  for (let repoType of repoTypes) {
+    const path = findPathForRepo(language, repoType)
+    if (!path) {
+      errors.push({ repoType, message: `could not find path for ${language}/${repoType}`});
+      continue;
+    }
+    let orgName, repo;
+    [ orgName, repo ] = path.split('/');
+    promises.push(verifyRepo(orgName, repo, errors, repoType, language, branch)); // run each check in parallel
+  }
+  await Promise.all(promises); // wait for all repos to be verified
+  if (errors.length) {
+    console.log(`verifyRepos(${username}, ${language}, ${JSON.stringify(repoTypes)}) - missing repos for ${JSON.stringify(errors)}`)
+  }
+  const elapsedSeconds = (new Date() - startTime) / 1000; // seconds
+  console.log(`verifyRepos(${username}, ${language}..) finished ${elapsedSeconds} seconds`);
+  return errors;
+}
+
+/**
+ * make sure we find repos on DCS for all languages
+ * @param {string} username
+ * @param {Array} repoTypes
+ * @param {Object} results
+ * @param {string} branch
+ * @return {Promise<*>} list of repo types that were not found on DCS
+ */
+export async function verifyReposForLanguages(username, repoTypes, results, branch = 'master') {
+  const startTime = new Date();
+  const promises = [];
+  results.finished = false;
+  for (let langID of Object.keys(repoMap)) {
+    if (!repoMap[langID].label) { // don't validate languages that don't have a label
+      continue;
+    }
+    const langResults = {
+      finished: false,
+    };
+    results[langID] = langResults;
+    promises.push(verifyRepos(username, langID, repoTypes, branch ).then((errors) => {
+      langResults.finished = true;
+      langResults.errors = errors;
+    }));
+  }
+  await Promise.all(promises); // wait for all repos to be verified
+  results.finished = true;
+  const elapsedSeconds = (new Date() - startTime) / 1000; // seconds
+  console.log(`verifyReposForLanguages() finished in ${elapsedSeconds} seconds`);
+}
+
+/**
+ * change the path for the repo
+ * @param {string} language
+ * @param {string} repoType
+ * @param {string} username
+ * @param {string} repoName
+ */
+export function setPathForRepo(language, repoType, username, repoName) {
+  //    console.log(`setPathForRepo('${username}', '${repo}')…`);
+  let path;
+  const __ret = findSettingsForLanguage(repoType, language);
+  repoType = __ret.repoType;
+  const langRepos = __ret.langRepos;
+  if (langRepos) {
+    langRepos[repoType] = `${username}/${repoName}`;
+    console.error(`setPathForRepo(${language}, ${repoType}) - setting repo path to ${langRepos[repoType]}`);
+    return
+  }
+  console.error(`setPathForRepo(${language}, ${repoType}) - cannot find repo path`);
+  return path;
+}
+
+/**
+ * find settings for the language
+ * @param {string} language
+ * @param {string} repoType
+ * @return {*}
+ */
+function findSettingsForLanguage(repoType, language) {
+  repoType = repoType.toUpperCase();
+  if (['ULT', 'GLT'].includes(repoType)) repoType = 'LT';
+  if (['UST', 'GST'].includes(repoType)) repoType = 'ST';
+  const langRepos = repoMap[language.toLowerCase()];
+  return {repoType, langRepos};
+}
+
+/**
+ * look up the username/repoName for the repo based on language
+ * @param {string} language
+ * @param {string} repoType
+ * @return {string}
+ */
+export function findPathForRepo(language, repoType) {
+  //    console.log(`findPathForRepo('${language}', '${repoType}')…`);
+  let path;
+  const __ret = findSettingsForLanguage(repoType, language);
+  repoType = __ret.repoType;
+  const langRepos = __ret.langRepos;
+  if (langRepos) {
+    const location = langRepos[repoType];
+    if (location) {
+      return location;
+    }
+  }
+  console.error(`findPathForRepo(${language}, ${repoType}) - cannot find repo path`);
+  return path;
+}
+
 /**
  *
  * @param {string} username
- * @param {string} repo
+ * @param {string} repoName (e.g. hi_tn)
  * @return {string} username to use
  */
-export function getUserNameOverrideForRepo(username, repo) {
+export function getUserNameOverrideForRepo(username, repoName) {
   //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
   const originalUsername = username;
-  if (['el-x-koine_ugnt', 'hbo_uhb'].includes(repo)) {
-    username = 'unfoldingWord';
+  let language, repoType;
+  [ language, repoType ] = repoName.split('_');
+  const path = findPathForRepo(language, repoType);
+  if (path) {
+    [ username ] = path.split('/');
   }
 
   if (username.toLowerCase() !== originalUsername.toLowerCase()) {
-    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repo}') - changing username to ${username}`);
+    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repoName}') - changing username to ${username}`);
   }
   return username;
 }
@@ -269,9 +497,8 @@ export async function PreLoadRepos(username, languageCode, branch = 'master', re
 async function fetchFileFromServer({ username, repository, path, branch = 'master' }) {
   console.log(`fetchFileFromServer(${username}, ${repository}, ${path}, ${branch})…`);
   const repoExists = await repositoryExists({ username, repository });
-  let uri;
+  const uri = Path.join(username, repository, 'raw/branch', branch, path);
   if (repoExists) {
-    uri = Path.join(username, repository, 'raw/branch', branch, path);
     const failMessage = await failedStore.getItem(uri.toLowerCase());
     if (failMessage) {
       // console.log(`fetchFileFromServer failed previously for ${uri}: ${failMessage}`);
@@ -293,7 +520,7 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
     /* await */ failedStore.setItem(uri.toLowerCase(), `Repo '${repository}' does not exist!`);
     return null;
   }
-};
+}
 
 /**
  *  older getFile without that doesn't use the unzipStore
@@ -343,7 +570,9 @@ async function repositoryExists({ username, repository }) {
   const { data: repos } = await cachedGet({ uri, params });
   // console.log(`repositoryExists repos (${repos.length})=${repos}`);
   // for (const thisRepo of repos) console.log(`  thisRepo (${JSON.stringify(Object.keys(thisRepo))}) =${JSON.stringify(thisRepo.name)}`);
-  const repo = repos.filter(repo => repo.name === repository)[0];
+  const match = `${username}/${repository}`.toLowerCase();
+  const repoList = repos.filter(repo => repo.full_name.toLowerCase() === match);
+  const repo = repoList[0];
   // console.log(`repositoryExists repo=${repo}`);
   // console.log(`  repositoryExists returning: ${!!repo}`);
   return !!repo;

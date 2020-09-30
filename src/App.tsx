@@ -34,7 +34,9 @@ import * as books from '../src/core/books';
 import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
-import { clearCaches, PreLoadRepos } from './core/getApi';
+import { clearCaches, PreLoadRepos, verifyReposForLanguages } from './core/getApi';
+
+const languagesValidationResults: { [x: string]: any; } = {};
 
 async function doInitialization() {
     //const username = 'unfoldingword';
@@ -42,6 +44,16 @@ async function doInitialization() {
     console.log("doInitialization()");
     const branch = 'master'
     await clearCaches();
+
+    // TODO: may need to add prompting for paths, may want to remove this if language list gets too big
+    verifyReposForLanguages('unfoldingword', ['TA', 'TW', 'TN', 'TQ', 'ST', 'LT'], languagesValidationResults).then(() => {
+        if (!languagesValidationResults.success) {
+            console.error("Repo verification error - could not find these repos:", languagesValidationResults);
+        } else {
+            console.log("Repo verification - all repos found");
+        }
+    });
+
     const success = await PreLoadRepos('unfoldingword', '', branch, [], true);
     if (!success) {
         console.log(`Failed to pre-load original language repos`)
@@ -236,6 +248,19 @@ export default function App() {
     if ( activeStep === 0 ) {
       // time to preload cache!
         doLanguageInitialization(org, lang);
+    }
+
+    // TODO: need to add step for validation
+    if ( activeStep === 0) {
+        const languageValidation = languagesValidationResults[lang];
+        if (languageValidation && languageValidation.finished) {
+            console.log(`Validation for '${lang}' completed before going to book selection`, languageValidation);
+            if (languageValidation.errors.length) {
+                console.log(`missing repos for '${lang}'!`, languageValidation.errors);
+            }
+        } else {
+            console.log(`Validation for '${lang}' did not complete before going to book selection`);
+        }
     }
     setActiveStep(prevActiveStep => prevActiveStep + 1);
     setSkipped(newSkipped);
