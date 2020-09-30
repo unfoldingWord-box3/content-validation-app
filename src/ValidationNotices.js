@@ -117,9 +117,10 @@ function ValidationWarnings({
     username,
     languageCode,
     bookID,
+    rawData
   }) {
 
-    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink, renderPriority);
+    let mt = util.notices_to_mt(results, username, languageCode, bookID, renderLink, renderWithUnicodeLink, renderPriority, rawData);
     return (
       <Paper>
         <MaterialTable

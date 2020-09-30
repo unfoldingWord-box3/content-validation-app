@@ -61,6 +61,7 @@ function BookPackageContentValidator({bookID, username, language_code}) {
                     username={username}
                     languageCode={language_code}
                     bookID={bookID}
+                    rawData={rawCBPResults}
                   />
                 : <br/> }
             </>);
