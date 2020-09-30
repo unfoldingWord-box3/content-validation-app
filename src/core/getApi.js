@@ -3,6 +3,7 @@ import yaml from 'yaml';
 import localforage from 'localforage';
 import { setup } from 'axios-cache-adapter';
 import JSZip from 'jszip';
+import _ from "lodash";
 
 const baseURL = 'https://git.door43.org/';
 const apiPath = 'api/v1';
@@ -75,13 +76,21 @@ const repoDefaultMap = {
 let repoMap = repoDefaultMap;
 
 /**
- * find settings for the language
- * @param {object} newRepoMap
+ * initialize repo map to new value or reset to default
+ * @param {object} newRepoMap - defaults to defaultRepoMap
  * @return {*}
  */
 export function initRepoMap(newRepoMap = repoDefaultMap) {
   console.log(`initRepoMap() - setting repo map to ${JSON.stringify(newRepoMap)}`)
-  repoMap = newRepoMap;
+  repoMap = _.cloneDeep(newRepoMap);
+}
+
+/**
+ * find settings for the language
+ * @return {object} current repoMap
+ */
+export function getRepoMap() {
+  return _.cloneDeep(repoMap);
 }
 
 /**
