@@ -36,6 +36,7 @@ import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/co
 import BookPackageContentValidator from './BookPackageContentValidator';
 import { clearCaches, PreLoadRepos, verifyReposForLanguages } from './core/getApi';
 
+// stores repo validation results for each language index by language
 const languagesValidationResults: { [x: string]: any; } = {};
 
 async function doInitialization() {
@@ -56,7 +57,7 @@ async function doInitialization() {
 
     const success = await PreLoadRepos('unfoldingword', '', branch, [], true);
     if (!success) {
-        console.log(`Failed to pre-load original language repos`)
+        console.log(`Failed to pre-load original language repos`);
     }
 }
 
