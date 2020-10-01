@@ -76,10 +76,10 @@ export const getLink = (repoType: string, username: string, languageCode: string
         extension = 'md';
         fileName = `${bookID}/${padRef2(rowData.C)}/${padRef2(rowData.V)}`;
     }
-    username = getUserNameOverrideForRepo(username, repoName);
+    const { username: username_, repoName: repoName_ } = getUserNameOverrideForRepo(username, repoName);
     if (['TN', 'TQ', 'UHB', 'UGNT', 'ULT', 'UST', 'LT', 'ST'].includes(repoTypeUC)) {
 
-            let link = `https://git.door43.org/${username}/${repoName}/${view}/branch/${branch}/${fileName}.${extension}`;
+            let link = `https://git.door43.org/${username_}/${repoName_}/${view}/branch/${branch}/${fileName}.${extension}`;
             if (lineNum) {
                 link += `#L${lineNum}`;
             }
