@@ -104,7 +104,7 @@ export function getRepoMap() {
  * @return {Promise<Array>}
  */
 async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
-  // console.log(`verifyRepo(${username}, ${language}, ${repoType})`)
+  console.log(`verifyRepo(${username}, ${repository}, ${repoType}, ${language})`)
   const repoExists = await repositoryExists({username, repository});
   if (!repoExists) {
     console.log(`verifyRepo(${username}, ${language}, ${repoType}) repo NOT found on DCS at ${username}/${repository}`)
@@ -134,13 +134,14 @@ export async function verifyRepos(username, language, repoTypes, branch = 'maste
   const promises = [];
   const startTime = new Date();
   for (let repoType of repoTypes) {
-    const path = findPathForRepo(username, language, repoType);
+    const path = findPathForRepo(username, language, repoType, repoType);
     if (!path) {
       errors.push({ repoType, message: `could not find path for ${language}/${repoType}`});
       continue;
     }
     let orgName, repo;
     [ orgName, repo ] = path.split('/');
+    // console.log(`verifying ${path}`)
     promises.push(verifyRepo(orgName, repo, errors, repoType, language, branch)); // run each check in parallel
   }
   await Promise.all(promises); // wait for all repos to be verified
@@ -193,9 +194,7 @@ export async function verifyReposForLanguages(username, repoTypes, results, bran
 export function setPathForRepo(language, repoType, username, repoName) {
   //    console.log(`setPathForRepo('${username}', '${repo}')…`);
   let path;
-  const __ret = findSettingsForLanguage(repoType, language);
-  repoType = __ret.repoType;
-  const langRepos = __ret.langRepos;
+  const { langRepos } = findSettingsForLanguage(repoType, language);
   if (langRepos) {
     langRepos[repoType] = `${username}/${repoName}`;
     console.error(`setPathForRepo(${language}, ${repoType}) - setting repo path to ${langRepos[repoType]}`);
@@ -225,19 +224,17 @@ function findSettingsForLanguage(repoType, language) {
  * @param {string} repoType
  * @return {string}
  */
-export function findPathForRepo(username, language, repoType) {
+export function findPathForRepo(username, language, repoType, repoName) {
   //    console.log(`findPathForRepo('${language}', '${repoType}')…`);
-  const __ret = findSettingsForLanguage(repoType, language);
-  const langRepos = __ret.langRepos;
+  const { langRepos, repoType: repoType_ } = findSettingsForLanguage(repoType, language);
   if (langRepos) {
-    repoType = __ret.repoType;
-    const location = langRepos[repoType];
+    const location = langRepos[repoType_];
     if (location) {
       return location;
     }
   }
   console.log(`findPathForRepo(${language}, ${repoType}) - not overriding default`);
-  return `${username}/${repoType.toLowerCase()}`; // fall back to original
+  return `${username}/${repoName}`; // fall back to original
 }
 
 /**
@@ -249,11 +246,14 @@ export function findPathForRepo(username, language, repoType) {
 export function getOverridesForRepo(username, repoName) {
   //    console.log(`getOverridesForRepo('${username}', '${repo}')…`);
   // const originalUsername = username;
-  let language;
-  [ language, repoName ] = repoName.split('_');
-  const path = findPathForRepo(username, language, repoName);
-  if (path) {
-    [ username, repoName ] = path.split('/');
+  const divider = repoName.indexOf('_');
+  if (divider >= 0) {
+    const language = repoName.substr(0, divider);
+    const repoType = repoName.substr(divider + 1);
+    const path = findPathForRepo(username, language, repoType, repoName);
+    if (path) {
+      [username, repoName] = path.split('/');
+    }
   }
 
   // if (username.toLowerCase() !== originalUsername.toLowerCase()) {
@@ -526,8 +526,8 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
       return null;
     }
   } else {
-    console.log(`ERROR: fetchFileFromServer repo '${repository}' does not exist!`);
-    /* await */ failedStore.setItem(uri.toLowerCase(), `Repo '${repository}' does not exist!`);
+    console.log(`ERROR: fetchFileFromServer repo '${username}/${repository}' does not exist!`);
+    /* await */ failedStore.setItem(uri.toLowerCase(), `Repo '${username}/${repository}' does not exist!`);
     return null;
   }
 }
