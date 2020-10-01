@@ -569,7 +569,7 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
         try {
           filename = await cachedGetBookFilenameFromManifest({ username, repository: repoName, branch, bookID: bookID.toLowerCase() });
           checkBookPackageResult.tsvFileName = filename;
-          console.assert(filename.startsWith(`${languageCode}_`), `Expected TN filename '${filename}' to start with the language code '${languageCode}_'`);
+          //console.assert(filename.startsWith(`${languageCode}_`), `Expected TN filename '${filename}' to start with the language code '${languageCode}_'`);
         } catch (e) {
           console.error(`cachedGetBookFilenameFromManifest failed with: ${e}`);
           filename = `${languageCode}_tn_${bookNumberAndName}.tsv`;
