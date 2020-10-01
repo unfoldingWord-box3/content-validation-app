@@ -548,10 +548,9 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
     let checkedFileCount = 0, checkedFilenames = [], checkedFilenameExtensions = new Set(), totalCheckedSize = 0, checkedRepoNames = [];
     const origLang = whichTestament === 'old' ? 'UHB' : 'UGNT';
 
-    // optionally pass in list of repos to check
-    const repoCodeList = (newCheckingOptions && newCheckingOptions.checkRepos) ? newCheckingOptions.checkRepos : [origLang, 'LT', 'ST', 'TN', 'TQ'];
+    const repoCodeList = [origLang, 'LT', 'ST', 'TN', 'TQ'];
     for (const repoCode of repoCodeList) {
-      console.log(`checkBookPackage: check ${bookID} in ${repoCode} (${languageCode} ${bookID} from ${username})`);
+      // console.log(`checkBookPackage: check ${bookID} in ${repoCode} (${languageCode} ${bookID} from ${username})`);
       const repoLocation = ` in ${repoCode.toUpperCase()}${generalLocation}`;
       const repoName = formRepoName(languageCode, repoCode);
 
