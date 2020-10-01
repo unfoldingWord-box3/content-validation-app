@@ -4,7 +4,7 @@ import {
   cachedGetBookFilenameFromManifest,
   formRepoName, getFileListFromZip,
   getFileCached,
-  fetchRepositoryZipFile
+  fetchRepositoryZipFile, getRepoMap
 } from './getApi';
 
 import {
@@ -579,7 +579,12 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
 
       if (repoCode === 'TQ') {
         // This resource might eventually be converted to TSV tables
-        const tqResultObject = await checkTQbook(username, languageCode, repoName, branch, bookID, newCheckingOptions);
+        let _username = username;
+        let _repoName = repoName;
+        const mappedResource = getRepoMap()[languageCode][repoCode];
+        _username = mappedResource.split('/')[0];
+        _repoName = mappedResource.split('/')[1];
+        const tqResultObject = await checkTQbook(_username, languageCode, _repoName, branch, bookID, newCheckingOptions);
         checkBookPackageResult.successList = checkBookPackageResult.successList.concat(tqResultObject.successList);
         checkBookPackageResult.noticeList = checkBookPackageResult.noticeList.concat(tqResultObject.noticeList);
         checkedFilenames = checkedFilenames.concat(tqResultObject.checkedFilenames);
@@ -592,7 +597,12 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
         let repoFileContent;
         try {
           // console.log("checkBookPackage about to fetch file_content for", username, repoName, branch, filename);
-          repoFileContent = await getFile_({ username, repository: repoName, path: filename, branch });
+          let _username = username;
+          let _repoName = repoName;
+          const mappedResource = getRepoMap()[languageCode][repoCode];
+          _username = mappedResource.split('/')[0];
+          _repoName = mappedResource.split('/')[1];
+          repoFileContent = await getFile_({ username: _username, repository: _repoName, path: filename, branch });
           // console.log("checkBookPackage fetched file_content for", username, repoName, branch, filename, typeof repoFileContent, repoFileContent.length);
           checkedFilenames.push(filename);
           totalCheckedSize += repoFileContent.length;

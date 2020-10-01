@@ -67,9 +67,9 @@ const repoDefaultMap = {
     TA: "ru_gl/ru_ta",
     TN: "ru_gl/ru_tn",
     TW: "ru_gl/ru_tw",
-    TQ: "ru_gl/ru_tq",
-    ST: "ru_gl/ru_gst",
-    LT: "ru_gl/ru_glt",
+    TQ: "ru_gl/ru_tq_2lv",
+    ST: "ru_gl/ru_rsob",
+    LT: "ru_gl/ru_rlob",
   }
 };
 
@@ -538,7 +538,6 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
  * @param {string} path
  * @param {string} branch
  * @return {Promise<*>}
- */
 async function getFile({ username, repository, path, branch }) {
   console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
   let file;
@@ -548,6 +547,7 @@ async function getFile({ username, repository, path, branch }) {
   }
   return file;
 }
+ */
 
 async function getUID({ username }) {
   // console.log(`getUID(${username})…`);
