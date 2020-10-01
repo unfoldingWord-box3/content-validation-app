@@ -539,8 +539,8 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
  * @param {string} path
  * @param {string} branch
  * @return {Promise<*>}
- */
-async function getFile({ username, repository, path, branch }) {
+
+ async function getFile({ username, repository, path, branch }) {
   console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
   let file;
   file = await getFileFromZip({ username, repository, path, branch });
@@ -549,6 +549,7 @@ async function getFile({ username, repository, path, branch }) {
   }
   return file;
 }
+*/
 
 async function getUID({ username }) {
   // console.log(`getUID(${username})…`);
