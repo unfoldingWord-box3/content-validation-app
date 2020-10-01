@@ -67,9 +67,9 @@ const repoDefaultMap = {
     TA: "ru_gl/ru_ta",
     TN: "ru_gl/ru_tn",
     TW: "ru_gl/ru_tw",
-    TQ: "ru_gl/ru_tq",
-    ST: "ru_gl/ru_gst",
-    LT: "ru_gl/ru_glt",
+    TQ: "ru_gl/ru_tq_2lv",
+    ST: "ru_gl/ru_rsob",
+    LT: "ru_gl/ru_rlob",
   }
 };
 
@@ -134,7 +134,7 @@ export async function verifyRepos(username, language, repoTypes, branch = 'maste
   const promises = [];
   const startTime = new Date();
   for (let repoType of repoTypes) {
-    const path = findPathForRepo(language, repoType)
+    const path = findPathForRepo(username, language, repoType);
     if (!path) {
       errors.push({ repoType, message: `could not find path for ${language}/${repoType}`});
       continue;
@@ -225,42 +225,41 @@ function findSettingsForLanguage(repoType, language) {
  * @param {string} repoType
  * @return {string}
  */
-export function findPathForRepo(language, repoType) {
+export function findPathForRepo(username, language, repoType) {
   //    console.log(`findPathForRepo('${language}', '${repoType}')…`);
-  let path;
   const __ret = findSettingsForLanguage(repoType, language);
-  repoType = __ret.repoType;
   const langRepos = __ret.langRepos;
   if (langRepos) {
+    repoType = __ret.repoType;
     const location = langRepos[repoType];
     if (location) {
       return location;
     }
   }
-  console.error(`findPathForRepo(${language}, ${repoType}) - cannot find repo path`);
-  return path;
+  console.log(`findPathForRepo(${language}, ${repoType}) - not overriding default`);
+  return `${username}/${repoType.toLowerCase()}`; // fall back to original
 }
 
 /**
  *
  * @param {string} username
  * @param {string} repoName (e.g. hi_tn)
- * @return {string} username to use
+ * @return {{username: string, repoName: string}} username and repoName to use
  */
-export function getUserNameOverrideForRepo(username, repoName) {
-  //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
-  const originalUsername = username;
-  let language, repoType;
-  [ language, repoType ] = repoName.split('_');
-  const path = findPathForRepo(language, repoType);
+export function getOverridesForRepo(username, repoName) {
+  //    console.log(`getOverridesForRepo('${username}', '${repo}')…`);
+  // const originalUsername = username;
+  let language;
+  [ language, repoName ] = repoName.split('_');
+  const path = findPathForRepo(username, language, repoName);
   if (path) {
-    [ username ] = path.split('/');
+    [ username, repoName ] = path.split('/');
   }
 
-  if (username.toLowerCase() !== originalUsername.toLowerCase()) {
-    console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repoName}') - changing username to ${username}`);
-  }
-  return username;
+  // if (username.toLowerCase() !== originalUsername.toLowerCase()) {
+  //   console.log(`getOverridesForRepo('${originalUsername}', '${repoName}') - changing username to ${username}`);
+  // }
+  return { username, repoName };
 }
 
 // caches failed http file fetches so we don't waste time with repeated attempts
@@ -327,9 +326,11 @@ export async function getUnZippedFile(path) {
  */
 export async function getFileCached({ username, repository, path, branch }) {
 
-  username = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
+  username = username_;
+  repository = repoName;
 
-  const filePath = Path.join(username, repository, path, branch);
+  const filePath = Path.join(username, repository, branch, path);
   // console.log(`getFileCached(${username}, ${repository}, ${path}, ${branch})…`);
   let contents = await getUnZippedFile(filePath);
   if (contents) {
@@ -584,6 +585,9 @@ async function repositoryExists({ username, repository }) {
   const repo = repoList[0];
   // console.log(`repositoryExists repo=${repo}`);
   // console.log(`  repositoryExists returning: ${!!repo}`);
+  if (!repo) {
+    console.log(`repositoryExists(${username}, ${repository}) - repo not found`, repos, repoList);
+  }
   return !!repo;
 };
 
@@ -626,7 +630,9 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
   // https://git.door43.org/{username}/{repository}/archive/{branch}.zip
   console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})…`);
 
-  username = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
+  username = username_;
+  repository = repoName;
 
   if (!forceLoad) { // see if we already have in zipStore
     const zipBlob = await getZipFromStore(username, repository, branch);
@@ -653,7 +659,7 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
     console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - got response status: ${response.status}`);
     return false;
   }
-};
+}
 
 /**
  * pull repo from zipstore and get a file list
@@ -666,7 +672,9 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
 export async function getFileListFromZip({ username, repository, branch, optionalPrefix }) {
   // console.log(`getFileListFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
 
-  username = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
+  username = username_;
+  repository = repoName;
 
   const uri = zipUri({ username, repository, branch });
   let zipBlob = await getZipFromStore(username, repository, branch);
