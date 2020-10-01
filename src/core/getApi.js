@@ -246,8 +246,8 @@ export function findPathForRepo(username, language, repoType) {
  * @param {string} repoName (e.g. hi_tn)
  * @return {{username: string, repoName: string}} username and repoName to use
  */
-export function getUserNameOverrideForRepo(username, repoName) {
-  //    console.log(`getUserNameOverrideForRepo('${username}', '${repo}')…`);
+export function getOverridesForRepo(username, repoName) {
+  //    console.log(`getOverridesForRepo('${username}', '${repo}')…`);
   // const originalUsername = username;
   let language;
   [ language, repoName ] = repoName.split('_');
@@ -257,7 +257,7 @@ export function getUserNameOverrideForRepo(username, repoName) {
   }
 
   // if (username.toLowerCase() !== originalUsername.toLowerCase()) {
-  //   console.log(`getUserNameOverrideForRepo('${originalUsername}', '${repoName}') - changing username to ${username}`);
+  //   console.log(`getOverridesForRepo('${originalUsername}', '${repoName}') - changing username to ${username}`);
   // }
   return { username, repoName };
 }
@@ -326,7 +326,7 @@ export async function getUnZippedFile(path) {
  */
 export async function getFileCached({ username, repository, path, branch }) {
 
-  const { username: username_, repoName } = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
   username = username_;
   repository = repoName;
 
@@ -630,7 +630,7 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
   // https://git.door43.org/{username}/{repository}/archive/{branch}.zip
   console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})…`);
 
-  const { username: username_, repoName } = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
   username = username_;
   repository = repoName;
 
@@ -672,7 +672,7 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
 export async function getFileListFromZip({ username, repository, branch, optionalPrefix }) {
   // console.log(`getFileListFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
 
-  const { username: username_, repoName } = getUserNameOverrideForRepo(username, repository);
+  const { username: username_, repoName } = getOverridesForRepo(username, repository);
   username = username_;
   repository = repoName;
 
