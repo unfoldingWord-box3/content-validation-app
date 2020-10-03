@@ -105,19 +105,13 @@ export function getRepoMap() {
  */
 async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
   console.log(`verifyRepo(${username}, ${repository}, ${repoType}, ${language})`)
-  const repoExists = await repositoryExists({username, repository});
-  if (!repoExists) {
-    console.log(`verifyRepo(${username}, ${language}, ${repoType}) repo NOT found on DCS at ${username}/${repository}`)
-    errors.push({repoType, message: `${language}/${repoType} not found on DCS at ${username}/${repository}`, repoFound: false, manifestFound: false});
+  // verify that repo exists and that it has a manifest
+  const manifestJSON = await cachedGetManifest({ username, repository, branch });
+  if (!manifestJSON) {
+    console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found on DCS at ${username}/${repository}`)
+    errors.push({repoType, message: `${language}/${repoType} manifest was not found on DCS at ${username}/${repository}`, manifestFound: false});
   } else {
-    // if repo exists, verify that it has a manifest
-    const manifestJSON = await cachedGetManifest({ username, repository, branch });
-    if (!manifestJSON) {
-      console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found on DCS at ${username}/${repository}`)
-      errors.push({repoType, message: `${language}/${repoType} manifest was not found on DCS at ${username}/${repository}`, repoFound: true, manifestFound: false});
-    } else {
-      // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
-    }
+    // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
   }
 }
 
