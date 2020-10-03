@@ -527,6 +527,7 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
  * @param {string} branch
  * @return {Promise<*>}
  */
+// eslint-disable-next-line no-unused-vars
 async function getFile({ username, repository, path, branch }) {
   console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
   let file;
@@ -554,6 +555,7 @@ async function getUID({ username }) {
  * @param {string} repository
  * @return {Promise<boolean>}
  */
+// eslint-disable-next-line no-unused-vars
 async function repositoryExists({ username, repository }) {
   // console.log(`repositoryExists(${username}, ${repository})…`);
   const uid = await getUID({ username });
