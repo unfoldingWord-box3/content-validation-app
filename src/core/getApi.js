@@ -94,7 +94,7 @@ export function getRepoMap() {
 }
 
 /**
- * verify existence of single repo - missing repos are added to error
+ * verify existence valid repo manifest - missing repos are added to error
  * @param {string} username
  * @param {string} repository
  * @param {Array} errors
@@ -106,13 +106,79 @@ export function getRepoMap() {
 async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
   console.log(`verifyRepo(${username}, ${repository}, ${repoType}, ${language})`)
   // verify that repo exists and that it has a manifest
-  const manifestJSON = await cachedGetManifest({ username, repository, branch });
-  if (!manifestJSON) {
-    console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found or repo does not exist at ${username}/${repository}`)
-    errors.push({repoType, message: `${language}/${repoType} manifest was not found or repo does not exist at ${username}/${repository}`, manifestFound: false});
-  } else {
-    // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
+  let { repoExists, manifestValid } = await verifyManifest({ username, repository });
+  let manifestFound = manifestValid, repoFound = repoExists, manifestParseFailed = false;
+  if (!manifestValid) {
+    if (!repoFound) {
+      console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) repo does not exist at ${username}/${repository}`)
+      errors.push({repoType, message: `${language}/${repoType} repo does not exist at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+    } else {
+      // check if repo manifest exists
+      const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
+      if (manifestContents) {
+        manifestFound = true;
+        // see if manifest is parseable
+        const manifestJSON = await cachedGetManifest({ username, repository, branch });
+        if (manifestJSON) {
+          manifestParseFailed = false;
+          // see if manifest is minimally sufficient
+          if (manifestJSON.projects && manifestJSON.projects.length) {
+            manifestValid = true;
+          } else {
+            manifestValid = false;
+            console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is incomplete at ${username}/${repository}`)
+            errors.push({repoType, message: `${language}/${repoType} manifest is incomplete at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+          }
+        } else {
+          manifestParseFailed = true;
+          console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is not parseable at ${username}/${repository}`)
+          errors.push({repoType, message: `${language}/${repoType} manifest is parseable at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+        }
+      } else {
+        console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is missing at ${username}/${repository}`)
+        errors.push({repoType, message: `${language}/${repoType} manifest is missing at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+      }
+    }
   }
+}
+
+/**
+ * check server to see if repository with valid manifest exists on server.
+ * @param {string} username
+ * @param {string} repository
+ * @return {Promise<{repoExists: boolean, manifestValid: boolean}>}
+ */
+async function verifyManifest({ username, repository }) {
+  console.log(`verifyManifest(${username}, ${repository})...`);
+  const params = { };
+  // console.log(`repositoryExists params=${JSON.stringify(params)}`);
+  // https://git.door43.org/api/v1/repos/unfoldingword/en_tq
+  const uri = Path.join(apiPath, 'repos', username, repository);
+  // console.log(`repositoryExists uri=${uri}`);
+  let response, repoExists = false, manifestValid = false;
+  try {
+    response = await cachedGet({uri, params});
+    if (response) {
+      repoExists = true;
+      if (!response.subject) {
+        console.log(`verifyManifest(${username}, ${repository}) - manifest invalid`);
+        manifestValid = false;
+      } else {
+        manifestValid = true;
+      }
+    } else {
+      console.log(`verifyManifest(${username}, ${repository}) - repo not found`);
+      repoExists = false;
+    }
+  } catch (e) {
+    repoExists = false;
+    if (e && e.response && (e.response.status === 404)) {
+      console.log(`verifyManifest(${username}, ${repository}) - repo does not exist`);
+    } else {
+      console.log(`verifyManifest(${username}, ${repository}) - query error`, e);
+    }
+  }
+  return { repoExists, manifestValid };
 }
 
 /**
@@ -538,16 +604,16 @@ async function getFile({ username, repository, path, branch }) {
   return file;
 }
 
-async function getUID({ username }) {
-  // console.log(`getUID(${username})…`);
-  const uri = Path.join(apiPath, 'users', username);
-  // console.log(`getUID uri=${uri}`);
-  const user = await cachedGet({ uri });
-  // console.log(`getUID user=${user}`);
-  const { id: uid } = user;
-  // console.log(`  getUID returning: ${uid}`);
-  return uid;
-}
+// async function getUID({ username }) {
+//   // console.log(`getUID(${username})…`);
+//   const uri = Path.join(apiPath, 'users', username);
+//   // console.log(`getUID uri=${uri}`);
+//   const user = await cachedGet({ uri });
+//   // console.log(`getUID user=${user}`);
+//   const { id: uid } = user;
+//   // console.log(`  getUID returning: ${uid}`);
+//   return uid;
+// }
 
 /**
  * check server to see if repository exists on server.  Do this before we try to download
@@ -558,11 +624,9 @@ async function getUID({ username }) {
 // eslint-disable-next-line no-unused-vars
 async function repositoryExists({ username, repository }) {
   // console.log(`repositoryExists(${username}, ${repository})…`);
-  const uid = await getUID({ username });
-  // console.log(`repositoryExists uid=${uid}`);
-  // Default limit is 10 -- way too small
+  // https://qa.door43.org/api/v1/repos/search?repo=kn_tn&owner=translationCore-Create-BCS
   // TODO: we probably want to change this to do paging since we cannot be sure of future size limits on fetches
-  const params = { q: repository, limit: 500, uid }; // Documentation says limit is 50, but larger numbers seem to work ok
+  const params = { repo: repository, owner: username };
   // console.log(`repositoryExists params=${JSON.stringify(params)}`);
   const uri = Path.join(apiPath, 'repos', `search`);
   // console.log(`repositoryExists uri=${uri}`);
@@ -578,7 +642,7 @@ async function repositoryExists({ username, repository }) {
     console.log(`repositoryExists(${username}, ${repository}) - repo not found`, repos, repoList);
   }
   return !!repo;
-};
+}
 
 async function cachedGet({ uri, params }) {
   // console.log(`cachedGet(${uri}, ${JSON.stringify(params)})…`);
@@ -586,14 +650,14 @@ async function cachedGet({ uri, params }) {
   const { data } = await Door43Api.get(baseURL + uri, { params });
   // console.log(`  cachedGet returning: ${JSON.stringify(data)}`);
   return data;
-};
+}
 
 export async function cachedGetURL({ uri, params }) {
   // console.log(`cachedGetURL(${uri}, ${params})…`);
   const { data } = await Door43Api.get(uri, { params });
   // console.log(`  cachedGetURL returning: ${data}`);
   return data;
-};
+}
 
 /*
 function fetchRepositoriesZipFiles({username, languageId, branch}) {
