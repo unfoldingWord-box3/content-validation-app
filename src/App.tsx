@@ -31,7 +31,7 @@ import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 //import { green } from '@material-ui/core/colors';
 import * as books from '../src/core/books';
-import { Container, CssBaseline, Grid, RadioGroup, Radio } from '@material-ui/core';
+import { Container, CssBaseline, Grid, RadioGroup, Radio, CircularProgress } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
 import { clearCaches, PreLoadRepos, verifyReposForLanguages } from './core/getApi';
@@ -167,7 +167,7 @@ function joinBookIds(state: bpStateIF ): string[] {
 
 
 function getSteps() {
-  return ['Select Organization and Language', 'Select Books', 'Content Validation Details'];
+  return ['Select Organization and Language', 'Repo Validation', 'Select Books', 'Content Validation Details'];
 }
 
 function getStepContent(step: number) {
@@ -175,8 +175,10 @@ function getStepContent(step: number) {
     case 0:
       return 'Select Organization and Language';
     case 1:
-      return 'Select books, then click Next to generate book package details';
+      return 'Repo Validation';
     case 2:
+      return 'Select books, then click Next to generate book package details';
+    case 3:
       return 'Content Validation Results';
     default:
       return 'Unknown step';
@@ -198,6 +200,18 @@ export default function App() {
   const [skipped, setSkipped] = React.useState(new Set<number>());
   const [org, setOrg]   = React.useState('unfoldingword');
   const [lang, setLang] = React.useState('en');
+  const [repoValidation, setRepoValidation] = React.useState(<CircularProgress/>)
+  React.useEffect( () => {
+    if (activeStep !== 1) {return;}
+    if ( languagesValidationResults.finished ) {
+      setRepoValidation(
+      <Paper>
+        <Typography><pre>{JSON.stringify(languagesValidationResults[lang],null,4)}</pre></Typography>
+      </Paper>);
+    } else {
+      setRepoValidation(<CircularProgress/>);
+    }
+  }, [lang, activeStep]); 
 
   /* ----------------------------------------------------------
       Prefetch the orginal languages, which are in
@@ -480,7 +494,7 @@ export default function App() {
               </Button>
             )}
 
-            <Button disabled={activeStep === 2} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
+            <Button disabled={activeStep === 3} variant="contained" color="primary" onClick={handleNext} className={classes.button}>
               Next
             </Button>
 
@@ -507,8 +521,11 @@ export default function App() {
               </>
             )}
 
-
             {(activeStep === 1) && (
+              <Paper>{repoValidation}</Paper>
+            )}
+
+            {(activeStep === 2) && (
               <Grid container spacing={3}>
                 <Grid item xs={6}>
                   <Paper>
@@ -565,7 +582,7 @@ export default function App() {
             )}
 
 
-            {(activeStep === 2) && (
+            {(activeStep === 3) && (
               <>
               <div>
                 <Paper>
