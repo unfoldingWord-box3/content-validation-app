@@ -105,19 +105,13 @@ export function getRepoMap() {
  */
 async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
   console.log(`verifyRepo(${username}, ${repository}, ${repoType}, ${language})`)
-  const repoExists = await repositoryExists({username, repository});
-  if (!repoExists) {
-    console.log(`verifyRepo(${username}, ${language}, ${repoType}) repo NOT found on DCS at ${username}/${repository}`)
-    errors.push({repoType, message: `${language}/${repoType} not found on DCS at ${username}/${repository}`, repoFound: false, manifestFound: false});
+  // verify that repo exists and that it has a manifest
+  const manifestJSON = await cachedGetManifest({ username, repository, branch });
+  if (!manifestJSON) {
+    console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found or repo does not exist at ${username}/${repository}`)
+    errors.push({repoType, message: `${language}/${repoType} manifest was not found or repo does not exist at ${username}/${repository}`, manifestFound: false});
   } else {
-    // if repo exists, verify that it has a manifest
-    const manifestJSON = await cachedGetManifest({ username, repository, branch });
-    if (!manifestJSON) {
-      console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found on DCS at ${username}/${repository}`)
-      errors.push({repoType, message: `${language}/${repoType} manifest was not found on DCS at ${username}/${repository}`, repoFound: true, manifestFound: false});
-    } else {
-      // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
-    }
+    // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
   }
 }
 
@@ -506,28 +500,21 @@ export async function PreLoadRepos(username, languageCode, branch = 'master', re
  */
 async function fetchFileFromServer({ username, repository, path, branch = 'master' }) {
   console.log(`fetchFileFromServer(${username}, ${repository}, ${path}, ${branch})…`);
-  const repoExists = await repositoryExists({ username, repository });
   const uri = Path.join(username, repository, 'raw/branch', branch, path);
-  if (repoExists) {
-    const failMessage = await failedStore.getItem(uri.toLowerCase());
-    if (failMessage) {
-      // console.log(`fetchFileFromServer failed previously for ${uri}: ${failMessage}`);
-      return null;
-    }
-    try {
-      // console.log("URI=",uri);
-      const data = await cachedGet({ uri });
-      // console.log("Got data", data);
-      return data;
-    }
-    catch (fffsError) {
-      console.log(`ERROR: fetchFileFromServer could not fetch ${path}: ${fffsError}`)
-      /* await */ failedStore.setItem(uri.toLowerCase(), fffsError.message);
-      return null;
-    }
-  } else {
-    console.log(`ERROR: fetchFileFromServer repo '${username}/${repository}' does not exist!`);
-    /* await */ failedStore.setItem(uri.toLowerCase(), `Repo '${username}/${repository}' does not exist!`);
+  const failMessage = await failedStore.getItem(uri.toLowerCase());
+  if (failMessage) {
+    // console.log(`fetchFileFromServer failed previously for ${uri}: ${failMessage}`);
+    return null;
+  }
+  try {
+    // console.log("URI=",uri);
+    const data = await cachedGet({ uri });
+    // console.log("Got data", data);
+    return data;
+  }
+  catch (fffsError) {
+    console.log(`ERROR: fetchFileFromServer could not fetch ${path}: ${fffsError}`)
+    /* await */ failedStore.setItem(uri.toLowerCase(), fffsError.message);
     return null;
   }
 }
@@ -539,8 +526,9 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
  * @param {string} path
  * @param {string} branch
  * @return {Promise<*>}
-
- async function getFile({ username, repository, path, branch }) {
+ */
+// eslint-disable-next-line no-unused-vars
+async function getFile({ username, repository, path, branch }) {
   console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
   let file;
   file = await getFileFromZip({ username, repository, path, branch });
@@ -549,7 +537,6 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
   }
   return file;
 }
-*/
 
 async function getUID({ username }) {
   // console.log(`getUID(${username})…`);
@@ -568,6 +555,7 @@ async function getUID({ username }) {
  * @param {string} repository
  * @return {Promise<boolean>}
  */
+// eslint-disable-next-line no-unused-vars
 async function repositoryExists({ username, repository }) {
   // console.log(`repositoryExists(${username}, ${repository})…`);
   const uid = await getUID({ username });
@@ -643,12 +631,6 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
     }
   }
 
-  const repoExists = await repositoryExists({ username, repository });
-  if (!repoExists) {
-    console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - repo doesn't exist`, { username, repository });
-    return false;
-  }
-
   const uri = zipUri({ username, repository, branch });
   const response = await fetch(uri);
   if (response.status === 200 || response.status === 0) {
@@ -668,7 +650,7 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
  * @param {string} repository
  * @param {string} branch
  * @param {string} optionalPrefix - to filter by book, etc.
- * @return {Promise<[]|*[]>}  resolves to file list
+ * @return {Promise<[]>}  resolves to file list
  */
 export async function getFileListFromZip({ username, repository, branch, optionalPrefix }) {
   // console.log(`getFileListFromZip(${username}, ${repository}, ${branch}, ${optionalPrefix})…`);
@@ -743,24 +725,30 @@ export async function getZipFromStore(username, repository, branch) {
  * @param {string} repository
  * @param {string} branch
  * @param {object} optionalPrefix
- * @return {Promise<[]|*[]>} resolves to unzipped file if found or null
+ * @return {Promise<[]|null>} resolves to unzipped file if found or null
  */
 async function getFileFromZip({ username, repository, path, branch }) {
   // console.log(`getFileFromZip(${username}, ${repository}, ${path}, ${branch})…`);
-  let file;
+  let file, zipPath, zip, fileData;
   const zipBlob = await getZipFromStore(username, repository, branch);
   try {
     if (zipBlob) {
       // console.log(`  Got zipBlob for uri=${uri}`);
-      const zip = await JSZip.loadAsync(zipBlob);
-      const zipPath = Path.join(repository.toLowerCase(), path);
+      zip = await JSZip.loadAsync(zipBlob);
+      zipPath = Path.join(repository.toLowerCase(), path);
       // console.log(`  zipPath=${zipPath}`);
-      file = await zip.file(zipPath).async('string');
-      // console.log(`    Got zipBlob ${file.length} bytes`);
+      fileData = zip.file(zipPath);
+      if (fileData) { // if file was found
+        file = await fileData.async('string');
+        // console.log(`    Got zipBlob ${file.length} bytes`);
+      } else {
+        console.log(`getFileFromZip - file not found for ${username} ${repository} ${encodeURI(path)} ${branch}`);
+        file = null;
+      }
     }
     // else console.log("  No zipBlob");
   } catch (error) {
-    console.log(`ERROR: getFileFromZip for ${username} ${repository} ${path} ${branch} got: ${error.message}`);
+    console.error(`getFileFromZip for ${username} ${repository} ${path} ${branch} got: ${error.message}`);
     file = null;
   }
   return file;
