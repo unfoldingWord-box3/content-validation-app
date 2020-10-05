@@ -175,7 +175,7 @@ async function verifyManifest({ username, repository }) {
     if (e && e.response && (e.response.status === 404)) {
       console.log(`verifyManifest(${username}, ${repository}) - repo does not exist`);
     } else {
-      console.log(`verifyManifest(${username}, ${repository}) - query error`, e);
+      console.error(`verifyManifest(${username}, ${repository}) - query error`, e);
     }
   }
   return { repoExists, manifestValid };
