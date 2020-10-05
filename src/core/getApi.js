@@ -108,8 +108,8 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
   // verify that repo exists and that it has a manifest
   const manifestJSON = await cachedGetManifest({ username, repository, branch });
   if (!manifestJSON) {
-    console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found on DCS at ${username}/${repository}`)
-    errors.push({repoType, message: `${language}/${repoType} manifest was not found on DCS at ${username}/${repository}`, manifestFound: false});
+    console.log(`verifyRepo(${username}, ${language}, ${repoType}) manifest NOT found or repo does not exist at ${username}/${repository}`)
+    errors.push({repoType, message: `${language}/${repoType} manifest was not found or repo does not exist at ${username}/${repository}`, manifestFound: false});
   } else {
     // console.log(`verifyRepo(${username}, ${language}, ${repoType}) found on DCS at ${username}/${repository}`);
   }
