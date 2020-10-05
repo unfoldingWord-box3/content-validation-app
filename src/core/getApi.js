@@ -631,12 +631,6 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
     }
   }
 
-  // const repoExists = await repositoryExists({ username, repository });
-  // if (!repoExists) {
-  //   console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - repo doesn't exist`, { username, repository });
-  //   return false;
-  // }
-
   const uri = zipUri({ username, repository, branch });
   const response = await fetch(uri);
   if (response.status === 200 || response.status === 0) {
