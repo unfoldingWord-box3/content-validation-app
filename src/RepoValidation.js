@@ -78,7 +78,7 @@ function RepoValidation({
             title="Repo Validation"
             columns={columns}
             data={data}
-            options={ {sorting: true} }
+            options={ {sorting: true, pageSize: 7} }
             cellEditable={{
                 onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
                   return new Promise((resolve, reject) => {
