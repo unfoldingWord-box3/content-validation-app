@@ -171,6 +171,17 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
         });
       }
     }
+  } else {
+    console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) all is well ${username}/${repository}`)
+    errors.push({repoType, 
+      username,
+      repository,
+      message: 'repo and manifest OK', 
+      manifestFound, 
+      manifestValid, 
+      manifestParseFailed, 
+      repoFound
+    });
   }
 }
 
