@@ -1,6 +1,5 @@
 import React from 'react';
 import clsx from 'clsx';
-//import { withStyles, makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles';
 import { makeStyles, useTheme, Theme, createStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
 import Stepper from '@material-ui/core/Stepper';
@@ -8,15 +7,12 @@ import Step from '@material-ui/core/Step';
 import StepLabel from '@material-ui/core/StepLabel';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-//import CircularProgress from '@material-ui/core/CircularProgress';
-//import Popover from '@material-ui/core/Popover';
 
 import FormLabel from '@material-ui/core/FormLabel';
 import FormControl from '@material-ui/core/FormControl';
 import FormGroup from '@material-ui/core/FormGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormHelperText from '@material-ui/core/FormHelperText';
-//import Checkbox, { CheckboxProps } from '@material-ui/core/Checkbox';
 import Checkbox from '@material-ui/core/Checkbox';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -28,13 +24,13 @@ import Divider from '@material-ui/core/Divider';
 import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
-
-//import { green } from '@material-ui/core/colors';
 import * as books from '../src/core/books';
+import * as util from './core/utilities';
 import { Container, CssBaseline, Grid, RadioGroup, Radio, CircularProgress } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
 import { clearCaches, PreLoadRepos, verifyReposForLanguages } from './core/getApi';
+import RepoValidation from './RepoValidation';
 
 // stores repo validation results for each language index by language
 const languagesValidationResults: { [x: string]: any; } = {};
@@ -204,10 +200,8 @@ export default function App() {
   React.useEffect( () => {
     if (activeStep !== 1) {return;}
     if ( languagesValidationResults.finished ) {
-      setRepoValidation(
-      <Paper>
-        <Typography><pre>{JSON.stringify(languagesValidationResults[lang],null,4)}</pre></Typography>
-      </Paper>);
+      util.repoValidations_to_mt(languagesValidationResults[lang].errors);
+      setRepoValidation( <RepoValidation results={languagesValidationResults[lang].errors} /> );
     } else {
       setRepoValidation(<CircularProgress/>);
     }
