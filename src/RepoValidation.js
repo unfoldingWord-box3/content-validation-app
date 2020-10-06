@@ -21,7 +21,6 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 
 import MaterialTable from 'material-table';
-import * as util from './core/utilities.ts';
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -46,20 +45,68 @@ const tableIcons = {
 
 function RepoValidation({
     results,
-}) {
+}) 
+{
 
-let mt = util.repoValidations_to_mt(results);
-return (
-    <Paper>
-    <MaterialTable
-        icons={tableIcons}
-        title={mt.title}
-        columns={mt.columns}
-        data={mt.data}
-        options={mt.options}
-    />
-    </Paper>
-);
+    const columns = [
+        { title: 'Resource Type', field: 'repoType', editable: 'never' },
+        { title: 'Org', field: 'org' },
+        { title: 'Repo', field: 'repo' },
+        { title: 'Message', field: 'message', editable: 'never' },
+    ];
+    const [data, setData] = React.useState([]);
+    React.useEffect( () => {
+        let _data = [];
+        for (let i=0; i<results.length; i++) {
+            let msg = results[i].message;
+            let org = results[i].username;
+            let repo = results[i].repository;
+            _data.push({
+                repoType: results[i].repoType,
+                org: org,
+                repo: repo,
+                message: msg,
+            });
+        }
+        setData(_data);
+    }, [results]); 
+
+    let repoVisual = (
+        <Paper>
+        <MaterialTable
+            icons={tableIcons}
+            title="Repo Validation"
+            columns={columns}
+            data={data}
+            options={ {sorting: true} }
+            cellEditable={{
+                onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
+                  return new Promise((resolve, reject) => {
+                    let _data = data;
+                    // first find the matching row
+                    for (let i=0; i<_data.length; i++) {
+                        if ( _data[i].repoType === rowData.repoType &&
+                             _data[i].org      === rowData.org &&
+                             _data[i].repo     === rowData.repo 
+                        ) {
+                            if ( columnDef.field === 'repo' ) {
+                                _data[i].repo = newValue;
+                            } else if ( columnDef.field === 'org' ) {
+                                _data[i].org  = newValue;
+                            }
+                        }
+                    }
+                    setData(_data);
+                    console.log('xx newValue: ' + newValue);
+                    setTimeout(resolve, 1000);
+                  });
+                }
+              }}      
+        />
+        </Paper>
+    );
+
+    return repoVisual;
 };
 
 RepoValidation.propTypes = {
@@ -68,8 +115,8 @@ results: PropTypes.array.isRequired,
 };
 
 const styles = theme => ({
-root: {
-},
+    root: {
+    },
 });
 
 export default withStyles(styles)(RepoValidation);

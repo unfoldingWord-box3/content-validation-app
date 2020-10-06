@@ -111,7 +111,15 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
   if (!manifestValid) {
     if (!repoFound) {
       console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) repo does not exist at ${username}/${repository}`)
-      errors.push({repoType, message: `${language}/${repoType} repo does not exist at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+      errors.push({repoType, 
+        username,
+        repository,
+        message: 'repo does not exist', 
+        manifestFound, 
+        manifestValid, 
+        manifestParseFailed, 
+        repoFound
+      });
     } else {
       // check if repo manifest exists
       const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
@@ -127,16 +135,40 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
           } else {
             manifestValid = false;
             console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is incomplete at ${username}/${repository}`)
-            errors.push({repoType, message: `${language}/${repoType} manifest is incomplete at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+            errors.push({repoType, 
+              username,
+              repository,
+              message: 'manifest is incomplete', 
+              manifestFound, 
+              manifestValid, 
+              manifestParseFailed, 
+              repoFound
+            });
           }
         } else {
           manifestParseFailed = true;
           console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is not parseable at ${username}/${repository}`)
-          errors.push({repoType, message: `${language}/${repoType} manifest is parseable at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+          errors.push({repoType, 
+            username,
+            repository,
+            message: `manifest is parseable`, 
+            manifestFound, 
+            manifestValid, 
+            manifestParseFailed, 
+            repoFound
+          });
         }
       } else {
         console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is missing at ${username}/${repository}`)
-        errors.push({repoType, message: `${language}/${repoType} manifest is missing at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+        errors.push({repoType, 
+          username,
+          repository,
+          message: 'manifest is missing', 
+          manifestFound, 
+          manifestValid, 
+          manifestParseFailed, 
+          repoFound
+        });
       }
     }
   }

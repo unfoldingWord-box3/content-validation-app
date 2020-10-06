@@ -277,32 +277,3 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
     return mt;
 };
 
-// function to convert an array of repo validations to
-// an object suitable for MaterialTable
-export const repoValidations_to_mt = ( ar: { [x: string]: string; }[] ) => {
-    let mt: ObjectLiteral = {};
-    mt.title = "Repo Validation";
-    mt.columns = [
-        { title: 'Resource Type', field: 'repoType' },
-        { title: 'Org', field: 'org' },
-        { title: 'Repo', field: 'repo' },
-        { title: 'Message', field: 'message' },
-    ];
-    mt.data = [];
-
-    for (let i=0; i<ar.length; i++) {
-        console.log("i,val=", i, ar[i]);
-        let msg = ar[i].message;
-        let org = msg.split(' at ')[1].split('/')[0];
-        let repo = msg.split(' at ')[1].split('/')[1];
-        mt.data.push({
-            repoType: ar[i].repoType,
-            org: org,
-            repo: repo,
-            message: msg,
-        });
-    }
-    mt.options = { sorting: true };
-
-    return mt;
-};

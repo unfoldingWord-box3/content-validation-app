@@ -25,7 +25,6 @@ import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
 import ChevronRightIcon from '@material-ui/icons/ChevronRight';
 
 import * as books from '../src/core/books';
-import * as util from './core/utilities';
 import { Container, CssBaseline, Grid, RadioGroup, Radio, CircularProgress } from '@material-ui/core';
 
 import BookPackageContentValidator from './BookPackageContentValidator';
@@ -200,7 +199,6 @@ export default function App() {
   React.useEffect( () => {
     if (activeStep !== 1) {return;}
     if ( languagesValidationResults.finished ) {
-      util.repoValidations_to_mt(languagesValidationResults[lang].errors);
       setRepoValidation( <RepoValidation results={languagesValidationResults[lang].errors} /> );
     } else {
       setRepoValidation(<CircularProgress/>);
