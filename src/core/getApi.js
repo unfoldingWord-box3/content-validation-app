@@ -108,86 +108,92 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
   // verify that repo exists and that it has a manifest
   let { repoExists, manifestValid } = await verifyManifest({ username, repository });
   let manifestFound = manifestValid, repoFound = repoExists, manifestParseFailed = false;
-  if (!manifestValid) {
-    if (!repoFound) {
-      console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) repo does not exist at ${username}/${repository}`)
-      errors.push({repoType, 
-        username,
-        repository,
-        language,
-        message: 'repo does not exist', 
-        manifestFound, 
-        manifestValid, 
-        manifestParseFailed, 
-        repoFound
-      });
-    } else {
-      // check if repo manifest exists
-      const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
-      if (manifestContents) {
-        manifestFound = true;
-        // see if manifest is parseable
-        const manifestJSON = await cachedGetManifest({ username, repository, branch });
-        if (manifestJSON) {
-          manifestParseFailed = false;
-          // see if manifest is minimally sufficient
-          if (manifestJSON.projects && manifestJSON.projects.length) {
-            manifestValid = true;
-          } else {
-            manifestValid = false;
-            console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is incomplete at ${username}/${repository}`)
-            errors.push({repoType, 
-              username,
-              repository,
-              language,
-              message: 'manifest is incomplete', 
-              manifestFound, 
-              manifestValid, 
-              manifestParseFailed, 
-              repoFound
-            });
-          }
+  let message;
+  /*
+  if (manifestValid) {
+    console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) all is well ${username}/${repository}`)
+    message = 'repo and manifest OK';
+    errors.push({repoType, 
+      username,
+      repository,
+      language,
+      message, 
+      manifestFound, 
+      manifestValid, 
+      manifestParseFailed, 
+      repoFound
+    });
+    return;
+  } 
+  */
+
+  if ( repoFound ) {
+    // check if repo manifest exists
+    const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
+    if (manifestContents) {
+      manifestFound = true;
+      // see if manifest is parseable
+      const manifestJSON = await cachedGetManifest({ username, repository, branch });
+      if (manifestJSON) {
+        manifestParseFailed = false;
+        // see if manifest is minimally sufficient
+        if (manifestJSON.projects && manifestJSON.projects.length) {
+          manifestValid = true;
+          message = 'repo and manifest OK';
         } else {
-          manifestParseFailed = true;
-          console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is not parseable at ${username}/${repository}`)
-          errors.push({repoType, 
-            username,
-            repository,
-            language,
-            message: `manifest is parseable`, 
-            manifestFound, 
-            manifestValid, 
-            manifestParseFailed, 
-            repoFound
-          });
+          manifestValid = false;
+          message = 'manifest is imcomplete';
         }
-      } else {
-        console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is missing at ${username}/${repository}`)
         errors.push({repoType, 
           username,
           repository,
           language,
-          message: 'manifest is missing', 
+          message, 
+          manifestFound, 
+          manifestValid, 
+          manifestParseFailed, 
+          repoFound
+        });
+      } else {
+        manifestParseFailed = true;
+        message = 'manifest is not parseable';
+        errors.push({repoType, 
+          username,
+          repository,
+          language,
+          message, 
           manifestFound, 
           manifestValid, 
           manifestParseFailed, 
           repoFound
         });
       }
+    } else {
+      message = 'manifest is missing';
+      errors.push({repoType, 
+        username,
+        repository,
+        language,
+        message, 
+        manifestFound, 
+        manifestValid, 
+        manifestParseFailed, 
+        repoFound
+      });
     }
   } else {
-    console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) all is well ${username}/${repository}`)
+    message = 'repo does not exist';
     errors.push({repoType, 
       username,
       repository,
       language,
-      message: 'repo and manifest OK', 
+      message, 
       manifestFound, 
       manifestValid, 
       manifestParseFailed, 
       repoFound
     });
-  }
+  } 
 }
 
 /**
@@ -209,13 +215,13 @@ async function verifyManifest({ username, repository }) {
     if (response) {
       repoExists = true;
       if (!response.subject) {
-        console.log(`verifyManifest(${username}, ${repository}) - manifest invalid`);
+        //console.log(`verifyManifest(${username}, ${repository}) - manifest invalid`);
         manifestValid = false;
       } else {
         manifestValid = true;
       }
     } else {
-      console.log(`verifyManifest(${username}, ${repository}) - repo not found`);
+      //console.log(`verifyManifest(${username}, ${repository}) - repo not found`);
       repoExists = false;
     }
   } catch (e) {
@@ -254,7 +260,7 @@ export async function verifyRepos(username, language, repoTypes, branch = 'maste
   }
   await Promise.all(promises); // wait for all repos to be verified
   if (errors.length) {
-    console.log(`verifyRepos(${username}, ${language}, ${JSON.stringify(repoTypes)}) - missing repos for ${JSON.stringify(errors)}`)
+    //console.log(`verifyRepos(${username}, ${language}, ${JSON.stringify(repoTypes)}) - missing repos for ${JSON.stringify(errors)}`)
   }
   const elapsedSeconds = (new Date() - startTime) / 1000; // seconds
   console.log(`verifyRepos(${username}, ${language}..) finished ${elapsedSeconds} seconds`);

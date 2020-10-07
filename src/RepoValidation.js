@@ -47,12 +47,17 @@ function RepoValidation({
     results,
 }) 
 {
-
+    console.log("RepoValidations() - results:",results);
     const columns = [
         { title: 'Resource Type', field: 'repoType', editable: 'never' },
         { title: 'Org', field: 'org' },
         { title: 'Repo', field: 'repo' },
-        { title: 'Message', field: 'message', editable: 'never' },
+        { title: 'Message', field: 'message', editable: 'never', 
+            cellStyle: {
+                fontFamily: "Ezra, Roboto, Helvetica, Arial, sans-serif",
+                width: `400px`
+            },
+        },
     ];
     const [data, setData] = React.useState([]);
     React.useEffect( () => {
