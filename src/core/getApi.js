@@ -109,23 +109,6 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
   let { repoExists, manifestValid } = await verifyManifest({ username, repository });
   let manifestFound = manifestValid, repoFound = repoExists, manifestParseFailed = false;
   let message;
-  /*
-  if (manifestValid) {
-    console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) all is well ${username}/${repository}`)
-    message = 'repo and manifest OK';
-    errors.push({repoType, 
-      username,
-      repository,
-      language,
-      message, 
-      manifestFound, 
-      manifestValid, 
-      manifestParseFailed, 
-      repoFound
-    });
-    return;
-  } 
-  */
 
   if ( repoFound ) {
     // check if repo manifest exists

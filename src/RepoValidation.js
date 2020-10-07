@@ -22,6 +22,8 @@ import ViewColumn from '@material-ui/icons/ViewColumn';
 
 import MaterialTable from 'material-table';
 
+import * as getApi from './core/getApi';
+
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
   Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
@@ -50,6 +52,7 @@ function RepoValidation({
     console.log("RepoValidations() - results:",results);
     const columns = [
         { title: 'Resource Type', field: 'repoType', editable: 'never' },
+        { title: 'Lang', field: 'lang', hidden: true },
         { title: 'Org', field: 'org' },
         { title: 'Repo', field: 'repo' },
         { title: 'Message', field: 'message', editable: 'never', 
@@ -68,6 +71,7 @@ function RepoValidation({
             let repo = results[i].repository;
             _data.push({
                 repoType: results[i].repoType,
+                lang: results[i].language,
                 org: org,
                 repo: repo,
                 message: msg,
@@ -99,10 +103,10 @@ function RepoValidation({
                             } else if ( columnDef.field === 'org' ) {
                                 _data[i].org  = newValue;
                             }
+                            getApi.setPathForRepo(_data[i].lang, _data[i].repoType, _data[i].org, _data[i].repo);
                         }
                     }
                     setData(_data);
-                    console.log('xx newValue: ' + newValue);
                     setTimeout(resolve, 1000);
                   });
                 }

@@ -57,8 +57,6 @@ async function doInitialization() {
 }
 
 async function doLanguageInitialization(username: string,language_code: string) {
-    //const username = 'unfoldingword';
-    //const language_code = 'en';
     console.log("doLanguageInitialization() username, lang:", username, language_code);
     const branch = 'master'
     const success = await PreLoadRepos(username, language_code, branch, ['TA', 'TW', 'TN', 'TQ'], false, true);
@@ -254,20 +252,25 @@ export default function App() {
     }
     if ( activeStep === 0 ) {
       // time to preload cache!
-        doLanguageInitialization(org, lang);
+      doLanguageInitialization(org, lang);
     }
 
     // TODO: need to add step for validation
-    if ( activeStep === 0) {
-        const languageValidation = languagesValidationResults[lang];
-        if (languageValidation && languageValidation.finished) {
-            console.log(`Validation for '${lang}' completed before going to book selection`, languageValidation);
-            if (languageValidation.errors.length) {
-                console.log(`missing repos for '${lang}'!`, languageValidation.errors);
-            }
-        } else {
-            console.log(`Validation for '${lang}' did not complete before going to book selection`);
-        }
+    if ( activeStep === 1 ) {
+      // in case they updated the org or repo values, just run again
+      // if no changes then it will be quick
+      doLanguageInitialization(org, lang);
+      /*
+      const languageValidation = languagesValidationResults[lang];
+      if (languageValidation && languageValidation.finished) {
+          console.log(`Validation for '${lang}' completed before going to book selection`, languageValidation);
+          if (languageValidation.errors.length) {
+              console.log(`missing repos for '${lang}'!`, languageValidation.errors);
+          }
+      } else {
+          console.log(`Validation for '${lang}' did not complete before going to book selection`);
+      }
+      */
     }
     setActiveStep(prevActiveStep => prevActiveStep + 1);
     setSkipped(newSkipped);
