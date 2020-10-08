@@ -21,6 +21,8 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 
 import MaterialTable from 'material-table';
+import localforage from 'localforage';
+
 
 import * as getApi from './core/getApi';
 
@@ -44,12 +46,22 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
+// caches repo validation results
+const repoValidationStore = localforage.createInstance({
+    driver: [localforage.INDEXEDDB],
+    name: 'repo-validation-cache',
+});
+  
+const repoValidationKey = 'repoValidationKey';
+let resultsProcessedOnce = false;
+
 
 function RepoValidation({
     results,
 }) 
 {
     console.log("RepoValidations() - results:",results);
+    console.log("resultsProcessOnce=", resultsProcessedOnce);
     const columns = [
         { title: 'Resource Type', field: 'repoType', editable: 'never' },
         { title: 'Lang', field: 'lang', hidden: true },
@@ -63,7 +75,22 @@ function RepoValidation({
         },
     ];
     const [data, setData] = React.useState([]);
-    React.useEffect( () => {
+    if ( resultsProcessedOnce ) {
+        // check cache
+        repoValidationStore.getItem(repoValidationKey).then(function(value) {
+            if ( value ) { 
+                // stringify them both
+                const _data = JSON.stringify(data);
+                const _value = JSON.stringify(value);
+                if ( _value !== _data ) setData(value);
+            }
+        });
+    } else {
+        // first time thru this component is seen
+        // clear the cache
+        repoValidationStore.clear().then( () => {
+            console.log("repoValidationStore.clear()")
+        });
         let _data = [];
         for (let i=0; i<results.length; i++) {
             let msg = results[i].message;
@@ -78,7 +105,10 @@ function RepoValidation({
             });
         }
         setData(_data);
-    }, [results]); 
+        //repoValidationStore.setItem(repoValidationKey, _data);
+        resultsProcessedOnce = true;
+    }
+
 
     let repoVisual = (
         <Paper>
@@ -90,7 +120,8 @@ function RepoValidation({
             options={ {sorting: true, pageSize: 7} }
             cellEditable={{
                 onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
-                  return new Promise((resolve, reject) => {
+                    console.log("onCellEditApproved()", newValue, oldValue, rowData, columnDef);
+                    return new Promise((resolve, reject) => {
                     let _data = data;
                     // first find the matching row
                     for (let i=0; i<_data.length; i++) {
@@ -109,6 +140,9 @@ function RepoValidation({
                             .then((errors) => {
                                 console.log("getApi.verifyRepo() errors=",errors);
                                 _data[i].message = errors[0].message;
+                                repoValidationStore.setItem(repoValidationKey, _data).then( () => {
+                                    console.log("repoValidationStore.setItem()");
+                                });
                                 setData(_data);
                             });
                             break;

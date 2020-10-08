@@ -11747,10 +11747,10 @@ uuid@^3.3.2, uuid@^3.4.0:
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.4.0.tgz#b23e4358afa8a202fe7a100af1f5f883f02007ee"
   integrity sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
 
-uw-content-validation@0.8.15-alpha.1:
-  version "0.8.15-alpha.1"
-  resolved "https://registry.yarnpkg.com/uw-content-validation/-/uw-content-validation-0.8.15-alpha.1.tgz#9ee3f2906aff4127f497e20178c5f6ae2d5ba704"
-  integrity sha512-whJwR0+O+QCRPzJro/VbKftxC8v1vnpstH+aKAN1E1gThdMWFyI0ItjKnQqZ5Fg/1s/O3diCgLBHcgbukJjNvw==
+uw-content-validation@0.8.15:
+  version "0.8.15"
+  resolved "https://registry.yarnpkg.com/uw-content-validation/-/uw-content-validation-0.8.15.tgz#71fcae1e6f4307bf0df2dd083e753758f3a93e6a"
+  integrity sha512-Fjrl5ScKpTzRSMSsXtiauvFDu0edqHkRo235rdukBpVoM0ZzgCoryqxHKEv0xWrs6tqQTP+HBpLyqOvCFVTATg==
   dependencies:
     "@date-io/core" "^2.9.0"
     ajv "^6.12.5"

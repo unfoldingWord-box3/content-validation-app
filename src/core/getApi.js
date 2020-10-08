@@ -384,6 +384,7 @@ const unzipStore = localforage.createInstance({
   name: 'unzip-store',
 });
 
+
 // API for http requests
 const Door43Api = setup({
   baseURL: baseURL,
