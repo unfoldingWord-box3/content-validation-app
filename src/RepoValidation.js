@@ -104,9 +104,16 @@ function RepoValidation({
                                 _data[i].org  = newValue;
                             }
                             getApi.setPathForRepo(_data[i].lang, _data[i].repoType, _data[i].org, _data[i].repo);
+                            let errors = [];
+                            getApi.verifyRepo(_data[i].org,_data[i].repo,errors,_data[i].repoType,_data[i].lang)
+                            .then((errors) => {
+                                console.log("getApi.verifyRepo() errors=",errors);
+                                _data[i].message = errors[0].message;
+                                setData(_data);
+                            });
+                            break;
                         }
                     }
-                    setData(_data);
                     setTimeout(resolve, 1000);
                   });
                 }
