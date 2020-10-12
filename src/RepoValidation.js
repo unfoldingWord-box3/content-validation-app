@@ -21,7 +21,8 @@ import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 
 import MaterialTable from 'material-table';
-import localforage from 'localforage';
+//import localforage from 'localforage';
+import useEffect from 'use-deep-compare-effect';
 
 
 import * as getApi from './core/getApi';
@@ -46,22 +47,13 @@ const tableIcons = {
   ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
 };
 
-// caches repo validation results
-const repoValidationStore = localforage.createInstance({
-    driver: [localforage.INDEXEDDB],
-    name: 'repo-validation-cache',
-});
-  
-const repoValidationKey = 'repoValidationKey';
-let resultsProcessedOnce = false;
 
 
 function RepoValidation({
     results,
 }) 
 {
-    console.log("RepoValidations() - results:",results);
-    console.log("resultsProcessOnce=", resultsProcessedOnce);
+    // define the table
     const columns = [
         { title: 'Resource Type', field: 'repoType', editable: 'never' },
         { title: 'Lang', field: 'lang', hidden: true },
@@ -74,50 +66,17 @@ function RepoValidation({
             },
         },
     ];
+    // create a state to persist table data and update it when necessary
     const [data, setData] = React.useState([]);
-    if ( resultsProcessedOnce ) {
-        // check cache
-        repoValidationStore.getItem(repoValidationKey).then(function(value) {
-            if ( value ) { 
-                // stringify them both
-                const _data = JSON.stringify(data);
-                const _value = JSON.stringify(value);
-                if ( _value !== _data ) setData(value);
-            }
-        });
-    } else {
-        // first time thru this component is seen
-        // clear the cache
-        repoValidationStore.clear().then( () => {
-            console.log("repoValidationStore.clear()")
-        });
-        let _data = [];
-        for (let i=0; i<results.length; i++) {
-            let msg = results[i].message;
-            let org = results[i].username;
-            let repo = results[i].repository;
-            _data.push({
-                repoType: results[i].repoType,
-                lang: results[i].language,
-                org: org,
-                repo: repo,
-                message: msg,
-            });
-        }
-        setData(_data);
-        //repoValidationStore.setItem(repoValidationKey, _data);
-        resultsProcessedOnce = true;
-    }
 
-
-    let repoVisual = (
+    const repoVisual = (
         <Paper>
         <MaterialTable
             icons={tableIcons}
             title="Repo Validation"
             columns={columns}
             data={data}
-            options={ {sorting: true, pageSize: 7} }
+            options={ {pageSize: 7} }
             cellEditable={{
                 onCellEditApproved: (newValue, oldValue, rowData, columnDef) => {
                     console.log("onCellEditApproved()", newValue, oldValue, rowData, columnDef);
@@ -138,11 +97,10 @@ function RepoValidation({
                             let errors = [];
                             getApi.verifyRepo(_data[i].org,_data[i].repo,errors,_data[i].repoType,_data[i].lang)
                             .then((errors) => {
-                                console.log("getApi.verifyRepo() errors=",errors);
                                 _data[i].message = errors[0].message;
-                                repoValidationStore.setItem(repoValidationKey, _data).then( () => {
-                                    console.log("repoValidationStore.setItem()");
-                                });
+                                results[i].message = errors[0].message;
+                                results[i].repository = errors[0].repository;
+                                results[i].username = errors[0].username;
                                 setData(_data);
                             });
                             break;
@@ -155,6 +113,20 @@ function RepoValidation({
         />
         </Paper>
     );
+
+    useEffect( () => {
+        let _data = [];
+        for (let i=0; i<results.length; i++) {
+            _data.push({
+                repoType: results[i].repoType,
+                lang: results[i].language,
+                org: results[i].username,
+                repo: results[i].repository,
+                message: results[i].message,
+            });
+        }
+        setData(_data);
+    }, [results]);
 
     return repoVisual;
 };

@@ -583,11 +583,11 @@ export default function App() {
                 <Paper>
                 {
                   joinBookIds(state).map(id =>
-                    <div>
+                    <div id={id} >
                     <Typography variant="h6" >Book Package for {books.bookTitleById(id)} </Typography>
                     <BookPackageContentValidator bookID={id} key={id} username={org} language_code={lang} />
                     </div>
-                  )
+                  ) 
                 }
                 </Paper>
               </div>

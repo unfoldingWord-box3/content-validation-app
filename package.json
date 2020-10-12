@@ -38,7 +38,8 @@
     "react-scripts": "^3.4.1",
     "typescript": "^4.0.2",
     "uw-content-validation": "0.8.15",
-    "yaml": "^1.10.0"
+    "yaml": "^1.10.0",
+    "use-deep-compare-effect": "^1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
