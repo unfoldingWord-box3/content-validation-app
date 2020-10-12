@@ -108,6 +108,7 @@ export async function verifyRepo(username, repository, errors, repoType, languag
   // verify that repo exists and that it has a manifest
   let { repoExists, manifestValid } = await verifyManifest({ username, repository });
   let manifestFound = manifestValid, repoFound = repoExists, manifestParseFailed = false;
+
   let message;
 
   if ( repoFound ) {
@@ -178,6 +179,7 @@ export async function verifyRepo(username, repository, errors, repoType, languag
     });
   } 
   return errors;
+
 }
 
 /**
@@ -187,7 +189,7 @@ export async function verifyRepo(username, repository, errors, repoType, languag
  * @return {Promise<{repoExists: boolean, manifestValid: boolean}>}
  */
 async function verifyManifest({ username, repository }) {
-  //console.log(`verifyManifest(${username}, ${repository})...`);
+
   const params = { };
   // console.log(`repositoryExists params=${JSON.stringify(params)}`);
   // https://git.door43.org/api/v1/repos/unfoldingword/en_tq
@@ -199,13 +201,11 @@ async function verifyManifest({ username, repository }) {
     if (response) {
       repoExists = true;
       if (!response.subject) {
-        //console.log(`verifyManifest(${username}, ${repository}) - manifest invalid`);
         manifestValid = false;
       } else {
         manifestValid = true;
       }
     } else {
-      //console.log(`verifyManifest(${username}, ${repository}) - repo not found`);
       repoExists = false;
     }
   } catch (e) {
