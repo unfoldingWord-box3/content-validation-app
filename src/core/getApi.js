@@ -81,7 +81,7 @@ let repoMap = repoDefaultMap;
  * @return {*}
  */
 export function initRepoMap(newRepoMap = repoDefaultMap) {
-  console.log(`initRepoMap() - setting repo map to ${JSON.stringify(newRepoMap)}`)
+  //console.log(`initRepoMap() - setting repo map to ${JSON.stringify(newRepoMap)}`)
   repoMap = _.cloneDeep(newRepoMap);
 }
 
@@ -103,43 +103,83 @@ export function getRepoMap() {
  * @param {string} branch
  * @return {Promise<Array>}
  */
-async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
+export async function verifyRepo(username, repository, errors, repoType, language, branch = 'master') {
   console.log(`verifyRepo(${username}, ${repository}, ${repoType}, ${language})`)
   // verify that repo exists and that it has a manifest
   let { repoExists, manifestValid } = await verifyManifest({ username, repository });
   let manifestFound = manifestValid, repoFound = repoExists, manifestParseFailed = false;
-  if (!manifestValid) {
-    if (!repoFound) {
-      console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) repo does not exist at ${username}/${repository}`)
-      errors.push({repoType, message: `${language}/${repoType} repo does not exist at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
-    } else {
-      // check if repo manifest exists
-      const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
-      if (manifestContents) {
-        manifestFound = true;
-        // see if manifest is parseable
-        const manifestJSON = await cachedGetManifest({ username, repository, branch });
-        if (manifestJSON) {
-          manifestParseFailed = false;
-          // see if manifest is minimally sufficient
-          if (manifestJSON.projects && manifestJSON.projects.length) {
-            manifestValid = true;
-          } else {
-            manifestValid = false;
-            console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is incomplete at ${username}/${repository}`)
-            errors.push({repoType, message: `${language}/${repoType} manifest is incomplete at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
-          }
+
+  let message;
+
+  if ( repoFound ) {
+    // check if repo manifest exists
+    const manifestContents = await getFileCached({ username, repository, path: 'manifest.yaml', branch });
+    if (manifestContents) {
+      manifestFound = true;
+      // see if manifest is parseable
+      const manifestJSON = await cachedGetManifest({ username, repository, branch });
+      if (manifestJSON) {
+        manifestParseFailed = false;
+        // see if manifest is minimally sufficient
+        if (manifestJSON.projects && manifestJSON.projects.length) {
+          manifestValid = true;
+          message = 'repo and manifest OK';
         } else {
-          manifestParseFailed = true;
-          console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is not parseable at ${username}/${repository}`)
-          errors.push({repoType, message: `${language}/${repoType} manifest is parseable at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+          manifestValid = false;
+          message = 'manifest is imcomplete';
         }
+        errors.push({repoType, 
+          username,
+          repository,
+          language,
+          message, 
+          manifestFound, 
+          manifestValid, 
+          manifestParseFailed, 
+          repoFound
+        });
       } else {
-        console.log(`verifyRepoDetailed(${username}, ${language}, ${repoType}) manifest is missing at ${username}/${repository}`)
-        errors.push({repoType, message: `${language}/${repoType} manifest is missing at ${username}/${repository}`, manifestFound, manifestValid, manifestParseFailed, repoFound});
+        manifestParseFailed = true;
+        message = 'manifest is not parseable';
+        errors.push({repoType, 
+          username,
+          repository,
+          language,
+          message, 
+          manifestFound, 
+          manifestValid, 
+          manifestParseFailed, 
+          repoFound
+        });
       }
+    } else {
+      message = 'manifest is missing';
+      errors.push({repoType, 
+        username,
+        repository,
+        language,
+        message, 
+        manifestFound, 
+        manifestValid, 
+        manifestParseFailed, 
+        repoFound
+      });
     }
-  }
+  } else {
+    message = 'repo does not exist';
+    errors.push({repoType, 
+      username,
+      repository,
+      language,
+      message, 
+      manifestFound, 
+      manifestValid, 
+      manifestParseFailed, 
+      repoFound
+    });
+  } 
+  return errors;
+
 }
 
 /**
@@ -149,7 +189,7 @@ async function verifyRepo(username, repository, errors, repoType, language, bran
  * @return {Promise<{repoExists: boolean, manifestValid: boolean}>}
  */
 async function verifyManifest({ username, repository }) {
-  console.log(`verifyManifest(${username}, ${repository})...`);
+
   const params = { };
   // console.log(`repositoryExists params=${JSON.stringify(params)}`);
   // https://git.door43.org/api/v1/repos/unfoldingword/en_tq
@@ -161,13 +201,11 @@ async function verifyManifest({ username, repository }) {
     if (response) {
       repoExists = true;
       if (!response.subject) {
-        console.log(`verifyManifest(${username}, ${repository}) - manifest invalid`);
         manifestValid = false;
       } else {
         manifestValid = true;
       }
     } else {
-      console.log(`verifyManifest(${username}, ${repository}) - repo not found`);
       repoExists = false;
     }
   } catch (e) {
@@ -206,7 +244,7 @@ export async function verifyRepos(username, language, repoTypes, branch = 'maste
   }
   await Promise.all(promises); // wait for all repos to be verified
   if (errors.length) {
-    console.log(`verifyRepos(${username}, ${language}, ${JSON.stringify(repoTypes)}) - missing repos for ${JSON.stringify(errors)}`)
+    //console.log(`verifyRepos(${username}, ${language}, ${JSON.stringify(repoTypes)}) - missing repos for ${JSON.stringify(errors)}`)
   }
   const elapsedSeconds = (new Date() - startTime) / 1000; // seconds
   console.log(`verifyRepos(${username}, ${language}..) finished ${elapsedSeconds} seconds`);
@@ -257,10 +295,10 @@ export function setPathForRepo(language, repoType, username, repoName) {
   const { langRepos } = findSettingsForLanguage(repoType, language);
   if (langRepos) {
     langRepos[repoType] = `${username}/${repoName}`;
-    console.error(`setPathForRepo(${language}, ${repoType}) - setting repo path to ${langRepos[repoType]}`);
+    //console.error(`setPathForRepo(${language}, ${repoType}) - setting repo path to ${langRepos[repoType]}`);
     return
   }
-  console.error(`setPathForRepo(${language}, ${repoType}) - cannot find repo path`);
+  //console.error(`setPathForRepo(${language}, ${repoType}) - cannot find repo path`);
   return path;
 }
 
@@ -293,7 +331,7 @@ export function findPathForRepo(username, language, repoType, repoName) {
       return location;
     }
   }
-  console.log(`findPathForRepo(${language}, ${repoType}) - not overriding default`);
+  //console.log(`findPathForRepo(${language}, ${repoType}) - not overriding default`);
   return `${username}/${repoName}`; // fall back to original
 }
 
@@ -345,6 +383,7 @@ const unzipStore = localforage.createInstance({
   driver: [localforage.INDEXEDDB],
   name: 'unzip-store',
 });
+
 
 // API for http requests
 const Door43Api = setup({
@@ -462,7 +501,7 @@ export async function cachedGetBookFilenameFromManifest({ username, repository, 
  * @return {Promise<void>}
  */
 export async function clearCaches() {
-  console.log("Clearing localforage.INDEXEDDB zipStore, cacheStore, etc. caches…");
+  //console.log("Clearing localforage.INDEXEDDB zipStore, cacheStore, etc. caches…");
   // const tasks = [zipStore, cacheStore].map(localforage.clear);
   // const results = await Promise.all(tasks);
   // results.forEach(x => console.log("Done it", x));
@@ -524,7 +563,7 @@ function addIfMissing(repos, newRepo, addToStart = true) {
 export async function PreLoadRepos(username, languageCode, branch = 'master', repos = [],
                                    loadOriginalLangs = false,
                                    loadUltAndUst = false) {
-  console.log(`PreLoadRepos(${username}, ${languageCode}, ${branch}, ${repos}, ${loadOriginalLangs})…`);
+  //console.log(`PreLoadRepos(${username}, ${languageCode}, ${branch}, ${repos}, ${loadOriginalLangs})…`);
 
   let success = true;
   const repos_ = repos.map((repo) => (formRepoName(languageCode, repo)));
@@ -545,10 +584,10 @@ export async function PreLoadRepos(username, languageCode, branch = 'master', re
 
   // load all the repos needed
   for (const repoName of repos_) {
-    console.log(`PreLoadRepos: preloading zip file for ${repoName}…`);
+    //console.log(`PreLoadRepos: preloading zip file for ${repoName}…`);
     const zipFetchSucceeded = await fetchRepositoryZipFile({ username, repository: repoName, branch });
     if (!zipFetchSucceeded) {
-      console.log(`PreLoadRepos: misfetched zip file for ${repoName} repo with ${zipFetchSucceeded}`);
+      //console.log(`PreLoadRepos: misfetched zip file for ${repoName} repo with ${zipFetchSucceeded}`);
       success = false;
     }
   }
@@ -565,7 +604,7 @@ export async function PreLoadRepos(username, languageCode, branch = 'master', re
  * @return {Promise<null|any>} resolves to file content
  */
 async function fetchFileFromServer({ username, repository, path, branch = 'master' }) {
-  console.log(`fetchFileFromServer(${username}, ${repository}, ${path}, ${branch})…`);
+  //console.log(`fetchFileFromServer(${username}, ${repository}, ${path}, ${branch})…`);
   const uri = Path.join(username, repository, 'raw/branch', branch, path);
   const failMessage = await failedStore.getItem(uri.toLowerCase());
   if (failMessage) {
@@ -595,7 +634,7 @@ async function fetchFileFromServer({ username, repository, path, branch = 'maste
  */
 // eslint-disable-next-line no-unused-vars
 async function getFile({ username, repository, path, branch }) {
-  console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
+  //console.log(`getFile(${username}, ${repository}, ${path}, ${branch})…`);
   let file;
   file = await getFileFromZip({ username, repository, path, branch });
   if (!file) {
@@ -681,7 +720,7 @@ function fetchRepositoriesZipFiles({username, languageId, branch}) {
  */
 export async function fetchRepositoryZipFile({ username, repository, branch }, forceLoad = false) {
   // https://git.door43.org/{username}/{repository}/archive/{branch}.zip
-  console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})…`);
+  //console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})…`);
 
   const { username: username_, repoName } = getOverridesForRepo(username, repository);
   username = username_;
@@ -690,7 +729,7 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
   if (!forceLoad) { // see if we already have in zipStore
     const zipBlob = await getZipFromStore(username, repository, branch);
     if (zipBlob) {
-      console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})… - already loaded`);
+      //console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch})… - already loaded`);
       return true;
     }
   }
@@ -699,11 +738,11 @@ export async function fetchRepositoryZipFile({ username, repository, branch }, f
   const response = await fetch(uri);
   if (response.status === 200 || response.status === 0) {
     const zipArrayBuffer = await response.arrayBuffer(); // blob storage not supported on mobile
-    console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - saving zip: ${uri}`);
+    //console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - saving zip: ${uri}`);
     await zipStore.setItem(uri.toLowerCase(), zipArrayBuffer);
     return true;
   } else {
-    console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - got response status: ${response.status}`);
+    //console.log(`fetchRepositoryZipFile(${username}, ${repository}, ${branch}) - got response status: ${response.status}`);
     return false;
   }
 }
@@ -732,7 +771,7 @@ export async function getFileListFromZip({ username, repository, branch, optiona
       const zipArrayBuffer = await response.arrayBuffer(); // blob storage not supported on mobile
       zipBlob = await zipStore.setItem(uri.toLowerCase(), zipArrayBuffer);
     } else {
-      console.log(`ERROR: getFilelistFromZip got response status: ${response.status}`);
+      //console.log(`ERROR: getFilelistFromZip got response status: ${response.status}`);
       return [];
     }
   }

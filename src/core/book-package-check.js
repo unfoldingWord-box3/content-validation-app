@@ -2,9 +2,10 @@ import React from 'react';
 import * as books from './books';
 import {
   cachedGetBookFilenameFromManifest,
-  formRepoName, getFileListFromZip,
+  //formRepoName, 
+  getFileListFromZip,
   getFileCached,
-  fetchRepositoryZipFile
+  fetchRepositoryZipFile, getRepoMap
 } from './getApi';
 
 import {
@@ -441,6 +442,7 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
   const newCheckingOptions = checkingOptions ? { ...checkingOptions } : {}; // clone before modify
   const getFile_ = newCheckingOptions.getFile ? newCheckingOptions.getFile : getFileCached; // default to using caching of files
   newCheckingOptions.getFile = getFile_; // use same getFile_ when we call core functions
+  
   if (!newCheckingOptions.originalLanguageRepoUsername) newCheckingOptions.originalLanguageRepoUsername = username;
   if (!newCheckingOptions.taRepoUsername) newCheckingOptions.taRepoUsername = username;
 
@@ -448,7 +450,8 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
   //  coz if it's not 'master', it's unlikely to be common for all the repos
   const branch = 'master';
 
-  const generalLocation = ` in ${languageCode} ${bookID} book package from ${username} ${branch} branch`;
+  //const generalLocation = ` in ${languageCode} ${bookID} book package from ${username} ${branch} branch`;
+  const generalLocation = ` in ${languageCode} ${bookID} book package`;
 
 
   function addSuccessMessage(successString) {
@@ -551,12 +554,18 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
     // optionally pass in list of repos to check
     const repoCodeList = (newCheckingOptions && newCheckingOptions.checkRepos) ? newCheckingOptions.checkRepos : [origLang, 'LT', 'ST', 'TN', 'TQ'];
     for (const repoCode of repoCodeList) {
-      console.log(`checkBookPackage: check ${bookID} in ${repoCode} (${languageCode} ${bookID} from ${username})`);
+      // consult repo map for org and repo values
+      const orgRepo  = getRepoMap()[languageCode][repoCode];
+      const orgname  = orgRepo.split('/')[0];
+      const repoName = orgRepo.split('/')[1];
+
+      console.log(`checkBookPackage: check ${bookID} in ${repoCode} (${languageCode} ${bookID} from ${orgname})`);
       const repoLocation = ` in ${repoCode.toUpperCase()}${generalLocation}`;
-      const repoName = formRepoName(languageCode, repoCode);
+      //const repoName = formRepoName(languageCode, repoCode);
 
       // Update our "waiting" message
-      setResultValue(<p style={{ color: 'magenta' }}>Checking {username} {languageCode} <b>{bookID}</b> book package in <b>{repoCode}</b> (checked <b>{checkedRepoNames.length.toLocaleString()}</b>/{repoCodeList.length} repos)…</p>);
+      //setResultValue(<p style={{ color: 'magenta' }}>Checking {username} {languageCode} <b>{bookID}</b> book package in <b>{repoCode}</b> (checked <b>{checkedRepoNames.length.toLocaleString()}</b>/{repoCodeList.length} repos)…</p>);
+      setResultValue(<p style={{ color: 'magenta' }}>Checking {orgname} {languageCode} <b>{bookID}</b> book package in <b>{repoCode}</b> (checked <b>{checkedRepoNames.length.toLocaleString()}</b>/{repoCodeList.length} repos)…</p>);
 
       let filename;
       if (repoCode === 'UHB' || repoCode === 'UGNT' || repoCode === 'LT' || repoCode === 'ST') {
@@ -567,7 +576,7 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
       }
       else if (repoCode === 'TN') {
         try {
-          filename = await cachedGetBookFilenameFromManifest({ username, repository: repoName, branch, bookID: bookID.toLowerCase() });
+          filename = await cachedGetBookFilenameFromManifest({ username: orgname, repository: repoName, branch, bookID: bookID.toLowerCase() });
           checkBookPackageResult.tsvFileName = filename;
           //console.assert(filename.startsWith(`${languageCode}_`), `Expected TN filename '${filename}' to start with the language code '${languageCode}_'`);
         } catch (e) {
@@ -580,7 +589,7 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
 
       if (repoCode === 'TQ') {
         // This resource might eventually be converted to TSV tables
-        const tqResultObject = await checkTQbook(username, languageCode, repoName, branch, bookID, newCheckingOptions);
+        const tqResultObject = await checkTQbook(orgname, languageCode, repoName, branch, bookID, newCheckingOptions);
         checkBookPackageResult.successList = checkBookPackageResult.successList.concat(tqResultObject.successList);
         checkBookPackageResult.noticeList = checkBookPackageResult.noticeList.concat(tqResultObject.noticeList);
         checkedFilenames = checkedFilenames.concat(tqResultObject.checkedFilenames);
@@ -593,19 +602,21 @@ export async function checkBookPackage(username, languageCode, bookID, setResult
         let repoFileContent;
         try {
           // console.log("checkBookPackage about to fetch file_content for", username, repoName, branch, filename);
-          repoFileContent = await getFile_({ username, repository: repoName, path: filename, branch });
+          repoFileContent = await getFile_({ username: orgname, repository: repoName, path: filename, branch });
           // console.log("checkBookPackage fetched file_content for", username, repoName, branch, filename, typeof repoFileContent, repoFileContent.length);
           checkedFilenames.push(filename);
           totalCheckedSize += repoFileContent.length;
           checkedRepoNames.push(repoCode);
         } catch (cBPgfError) {
-          console.error("Failed to load", username, repoName, filename, branch, cBPgfError + '');
+          console.error("Failed to load", orgname, repoName, filename, branch, cBPgfError + '');
           addNoticePartial({ priority: 996, message: "Failed to load", repoName, filename, location: `${repoLocation}: ${cBPgfError}`, extra: repoCode });
           continue;
         }
 
         // We use the generalLocation here (does not include repo name)
         //  so that we can adjust the returned strings ourselves
+        newCheckingOptions.originalLanguageRepoUsername = orgname;
+        newCheckingOptions.taRepoUsername = getRepoMap()[languageCode].TA.split('/')[0]
         await ourCheckBPFileContents(repoCode, filename, repoFileContent, generalLocation, newCheckingOptions); // Adds the notices to checkBookPackageResult
         checkedFileCount += 1;
         addSuccessMessage(`Checked ${repoCode.toUpperCase()} file: ${filename}`);

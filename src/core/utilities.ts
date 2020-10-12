@@ -277,25 +277,3 @@ export const notices_to_mt = ( ob: { [x: string]: any; }, username: string, lang
     return mt;
 };
 
-/*
-// function to convert an array of words to
-// an object suitable for MaterialTable
-export const aw_to_mt = ( ar => {
-    // first convert array to object
-    const ob = array_to_obj(ar);
-    const mt = {};
-    mt.title = "All Words in Text Order";
-    mt.columns = [
-        { title: 'Order', field: 'order' , type: 'numeric'},
-        { title: 'Word', field: 'word' },
-    ];
-    mt.data = [];
-    Object.keys(ob).forEach ( n => {
-        mt.data.push({ order: n, word: ob[n] })
-    });
-
-    mt.options = { sorting: true };
-
-    return mt;
-});
-*/
