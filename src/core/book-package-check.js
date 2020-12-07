@@ -257,7 +257,8 @@ export async function checkFileContents(languageCode, filename, fileContent, giv
     const bookID = filenameMain.substring(filenameMain.length - 3);
     // console.log(`Have USFM bookcode=${bookID}`);
     console.assert(books.isValidBookID(bookID), `checkFileContents: '${bookID}' is not a valid USFM book identifier`);
-    checkFileResult = checkUSFMText(languageCode, bookID, filename, fileContent, ourCFLocation, checkingOptions);
+    let repoCode = "";
+    checkFileResult = checkUSFMText(languageCode, repoCode, bookID, filename, fileContent, ourCFLocation, checkingOptions);
   } else if (filename.toLowerCase().endsWith('.sfm')) {
     const filenameMain = filename.substring(0, filename.length - 4); // drop .sfm
     console.log(`Have SFM filenameMain=${filenameMain}`);
@@ -266,7 +267,7 @@ export async function checkFileContents(languageCode, filename, fileContent, giv
     console.assert(books.isValidBookID(bookID), `checkFileContents: '${bookID}' is not a valid USFM book identifier`);
     checkFileResult = checkUSFMText(languageCode, bookID, filename, fileContent, ourCFLocation, checkingOptions);
   } else if (filename.toLowerCase().endsWith('.md'))
-    checkFileResult = checkMarkdownText(filename, fileContent, ourCFLocation, checkingOptions);
+    checkFileResult = checkMarkdownText(languageCode, filename, fileContent, ourCFLocation, checkingOptions);
   else if (filename.toLowerCase().endsWith('.txt'))
     checkFileResult = checkPlainText(filename, fileContent, ourCFLocation, checkingOptions);
   else if (filename.toLowerCase() === 'manifest.yaml')
