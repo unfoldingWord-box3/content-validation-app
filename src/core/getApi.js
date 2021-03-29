@@ -67,7 +67,7 @@ const repoDefaultMap = {
     TA: "ru_gl/ru_ta",
     TN: "ru_gl/ru_tn",
     TW: "ru_gl/ru_tw",
-    TQ: "ru_gl/ru_tq_2lv",
+    TQ: "ru_gl/ru_tq",
     ST: "ru_gl/ru_rsob",
     LT: "ru_gl/ru_rlob",
   }
